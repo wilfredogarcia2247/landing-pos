@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import heroDashboard from "@/assets/hero-principal.jpg";
+import heroDashboard from "@/assets/hero-principal.png";
 import posMobile from "@/assets/pos-mobile-app.jpg";
 import posStore from "@/assets/pos-store-usage.jpg";
 import posTablet from "@/assets/pos-tablet-printer.jpg";
