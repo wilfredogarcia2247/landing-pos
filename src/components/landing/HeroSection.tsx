@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, CheckCircle2 } from "lucide-react";
-import heroDashboard from "@/assets/hero-pos-dashboard.jpg";
+import heroDashboard from "@/assets/hero-principal.jpg";
 
 const HeroSection = () => {
   const benefits = [
