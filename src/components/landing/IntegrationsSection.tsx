@@ -222,7 +222,7 @@ const IntegrationsSection = () => {
           transition={{ duration: 0.6 }}
           className="relative max-w-4xl mx-auto"
         >
-          <div className="text-center mb-8 mt-8">
+          <div className="text-center mb-8 mt-16">
             <h3 className="text-2xl font-heading font-bold mb-2">
               Facturación Digital Sostenible
             </h3>
