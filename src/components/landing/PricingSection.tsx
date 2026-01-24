@@ -70,9 +70,17 @@ const PricingSection = () => {
             Precios por{" "}
             <span className="text-gradient">Volumen de Facturación</span>
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground mb-4">
             Paga solo por lo que usas. Planes basados en cantidad de facturas emitidas.
             Desde $10 USD al mes.
+          </p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-sm font-medium">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            Pagos en bolívares a tasa BCV del día
+          </div>
+          <p className="text-sm text-muted-foreground mt-3">
+            Los precios en USD son referenciales. El cobro se realiza en bolívares venezolanos
+            utilizando la tasa de cambio oficial del Banco Central de Venezuela.
           </p>
         </motion.div>
 
