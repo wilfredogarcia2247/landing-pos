@@ -59,7 +59,7 @@ const CTASection = () => {
             </a>
             <a href="mailto:ventas@posv3.com" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
               <Mail className="w-5 h-5" />
-              <span>ventas@posv3.com</span>
+              <span>ventas1@icarosoft.com</span>
             </a>
           </motion.div>
         </motion.div>
