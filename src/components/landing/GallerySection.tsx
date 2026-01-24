@@ -124,8 +124,8 @@ const GallerySection = () => {
           className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16"
         >
           {[
-            { value: "5,000+", label: "Negocios Activos" },
-            { value: "1M+", label: "Facturas Emitidas" },
+            { value: "0", label: "Negocios Activos" },
+            { value: "0", label: "Facturas Emitidas" },
             { value: "99.9%", label: "Uptime Garantizado" },
             { value: "24/7", label: "Soporte Técnico" },
           ].map((stat, index) => (
