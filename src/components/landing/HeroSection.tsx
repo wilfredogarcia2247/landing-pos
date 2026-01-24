@@ -9,6 +9,7 @@ const HeroSection = () => {
     "Facturación fiscal",
     "Soporte 24/7",
     "Sin Necesidad de papel",
+    "Sin Necesidad de impresoras",
   ];
 
   return (
@@ -89,11 +90,11 @@ const HeroSection = () => {
                 Comenzar Prueba Gratis
                 <ArrowRight className="w-5 h-5" />
               </Button>
-              <Button variant="outline" size="xl" asChild>
-                <a href="https://pos-demo.apps.icarosoft.com/login" target="_blank" rel="noopener noreferrer">
-                  <Play className="w-5 h-5" />
-                  Ver Demo
-                </a>
+              <Button variant="outline" size="xl" onClick={() => {
+                window.open('https://pos-demo.apps.icarosoft.com', '_blank', 'noopener,noreferrer');
+              }}>
+                <Play className="w-5 h-5" />
+                Ver Demo
               </Button>
             </motion.div>
           </motion.div>
