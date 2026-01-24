@@ -7,7 +7,7 @@ const HeroSection = () => {
   const benefits = [
     "Sin instalación",
     "Facturación fiscal",
-    "Soporte 24/7",
+    "Soporte",
     "Sin Necesidad de papel",
     "Sin Necesidad de impresoras",
   ];
