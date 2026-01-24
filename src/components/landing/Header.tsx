@@ -8,7 +8,7 @@ const Header = () => {
 
   const navItems = [
     { label: "Características", href: "#features" },
-    { label: "Integraciones", href: "#integrations" },
+    { label: "Tecnologia y integraciones", href: "#integrations" },
     { label: "Galería", href: "#gallery" },
     { label: "Precios", href: "#pricing" },
   ];
