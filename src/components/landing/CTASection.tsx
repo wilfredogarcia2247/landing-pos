@@ -29,17 +29,7 @@ const CTASection = () => {
             Comienza a Facturar Legalmente Hoy
           </motion.h2>
           
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto"
-          >
-            Únete a miles de negocios venezolanos que ya confían en POS V3
-            para su facturación fiscal.
-          </motion.p>
-
+        
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -65,7 +55,7 @@ const CTASection = () => {
           >
             <a href="tel:+584121234567" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
               <Phone className="w-5 h-5" />
-              <span>+58 412 123 4567</span>
+              <span>+58 424-6434313</span>
             </a>
             <a href="mailto:ventas@posv3.com" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
               <Mail className="w-5 h-5" />

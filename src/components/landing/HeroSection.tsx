@@ -89,9 +89,11 @@ const HeroSection = () => {
                 Comenzar Prueba Gratis
                 <ArrowRight className="w-5 h-5" />
               </Button>
-              <Button variant="outline" size="xl">
-                <Play className="w-5 h-5" />
-                Ver Demo
+              <Button variant="outline" size="xl" asChild>
+                <a href="https://pos-demo.apps.icarosoft.com/login" target="_blank" rel="noopener noreferrer">
+                  <Play className="w-5 h-5" />
+                  Ver Demo
+                </a>
               </Button>
             </motion.div>
           </motion.div>
