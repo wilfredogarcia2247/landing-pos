@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 
 const plans = [
   {
-    name: "Básico",
-    price: "29",
-    description: "Perfecto para emprendedores y pequeños negocios",
+    name: "Starter",
+    price: "10",
+    description: "Perfecto para negocios con bajo volumen de facturación",
     features: [
+      "Hasta 100 facturas al mes",
       "1 punto de venta",
       "Hasta 500 productos",
-      "Facturación fiscal ilimitada",
       "Reportes básicos",
       "Soporte por email",
       "1 usuario",
@@ -20,34 +20,30 @@ const plans = [
   },
   {
     name: "Profesional",
-    price: "59",
-    description: "Ideal para negocios en crecimiento",
+    price: "25",
+    description: "Ideal para negocios con volumen moderado de facturación",
     features: [
+      "Hasta 500 facturas al mes",
       "3 puntos de venta",
       "Productos ilimitados",
-      "Facturación fiscal ilimitada",
-      "Reportes avanzados",
       "Soporte prioritario 24/7",
       "5 usuarios",
       "Control de inventario",
-      "Integración contable",
     ],
     popular: true,
     cta: "Más Popular",
   },
   {
     name: "Empresarial",
-    price: "99",
-    description: "Para empresas con múltiples sucursales",
+    price: "50",
+    description: "Para empresas con alto volumen de facturación",
     features: [
+      "Facturas ilimitadas",
       "Puntos de venta ilimitados",
       "Productos ilimitados",
-      "Facturación fiscal ilimitada",
       "Reportes personalizados",
       "Soporte dedicado 24/7",
       "Usuarios ilimitados",
-      "Multi-sucursal",
-      "API personalizada",
       "Capacitación incluida",
     ],
     popular: false,
@@ -71,12 +67,12 @@ const PricingSection = () => {
             Precios
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6">
-            Planes que se Adaptan a{" "}
-            <span className="text-gradient">Tu Negocio</span>
+            Precios por{" "}
+            <span className="text-gradient">Volumen de Facturación</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            Sin costos ocultos. Sin contratos a largo plazo. Cancela cuando
-            quieras.
+            Paga solo por lo que usas. Planes basados en cantidad de facturas emitidas.
+            Desde $10 USD al mes.
           </p>
         </motion.div>
 
