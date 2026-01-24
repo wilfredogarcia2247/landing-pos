@@ -3,6 +3,8 @@ import { CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import fiscalPrinter from "@/assets/fiscal-printer.jpg";
 import posTablet from "@/assets/pos-tablet-printer.jpg";
+import ecoimg from "@/assets/eco-facturacion.png";
+import posimg from "@/assets/pos-usos-facturacion.png";
 
 const integrations = [
   {
@@ -64,7 +66,7 @@ const IntegrationsSection = () => {
           >
             <div className="relative rounded-2xl overflow-hidden shadow-card">
               <img
-                src={posTablet}
+                src={posimg}
                 alt="POS V3 funcionando en tablet"
                 className="w-full"
               />
@@ -144,7 +146,7 @@ const IntegrationsSection = () => {
           </div>
           <div className="relative rounded-2xl overflow-hidden shadow-card">
             <img
-              src={fiscalPrinter}
+              src={ecoimg}
               alt="Dashboard digital de POS V3"
               className="w-full"
             />
