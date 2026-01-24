@@ -54,8 +54,11 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost">Iniciar Sesión</Button>
-            <Button variant="hero">Prueba Gratis</Button>
+            <Button variant="hero" onClick={() => {
+              window.open('https://pos-demo.apps.icarosoft.com/login', '_blank', 'noopener,noreferrer');
+            }}>
+              Prueba Gratis
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
