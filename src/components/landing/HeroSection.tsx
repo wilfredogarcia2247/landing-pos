@@ -8,6 +8,7 @@ const HeroSection = () => {
     "Sin instalación",
     "Facturación fiscal",
     "Soporte 24/7",
+    "Sin Necesidad de papel",
   ];
 
   return (
@@ -54,9 +55,9 @@ const HeroSection = () => {
               transition={{ delay: 0.4 }}
               className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0"
             >
-              El único POS venezolano con integración directa a impresoras
-              fiscales UNIDIGITAL y THK FACTORY. Cumple con el SENIAT sin
-              complicaciones.
+              El único POS venezolano con facturación fiscal 100 % digital,
+              integrado a imprentas fiscal es digitales. Cumple con el SENIAT
+              eliminando papel, impresoras y costos innecesarios.
             </motion.p>
 
             {/* Benefits */}

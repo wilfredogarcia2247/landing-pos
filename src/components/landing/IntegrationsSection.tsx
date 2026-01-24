@@ -6,23 +6,23 @@ import posTablet from "@/assets/pos-tablet-printer.jpg";
 
 const integrations = [
   {
-    name: "UNIDIGITAL",
-    description: "Impresoras fiscales certificadas por el SENIAT para comercios de todos los tamaños.",
+    name: "100% Digital",
+    description: "Sin hardware obsoleto. Todo en la nube con acceso desde cualquier dispositivo.",
     features: [
-      "Conexión automática USB/Serial",
-      "Impresión de facturas en segundos",
-      "Reportes Z y X automáticos",
-      "Soporte técnico incluido",
+      "Cero emisiones de papel",
+      "Sin mantenimiento de equipos",
+      "Acceso desde cualquier lugar",
+      "Actualizaciones automáticas",
     ],
   },
   {
-    name: "THK FACTORY",
-    description: "La marca líder en equipos fiscales de Venezuela con máxima confiabilidad.",
+    name: "Eco-Friendly",
+    description: "Contribuye al cuidado del planeta eliminando el desperdicio de papel y energía.",
     features: [
-      "Compatibilidad total garantizada",
-      "Sincronización en tiempo real",
-      "Configuración guiada paso a paso",
-      "Actualizaciones automáticas",
+      "Facturas digitales certificadas",
+      "Reportes en tiempo real",
+      "Sin costos de impresión",
+      "Huella de carbono cero",
     ],
   },
 ];
@@ -43,12 +43,12 @@ const IntegrationsSection = () => {
             Integraciones
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6">
-            Compatible con tus{" "}
-            <span className="text-gradient">Impresoras Fiscales</span>
+            Tecnología{" "}
+            <span className="text-gradient">100% Digital</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            Conecta tu impresora fiscal en minutos y comienza a emitir facturas
-            legales de inmediato.
+            Olvídate de hardware costoso y obsoleto. Nuestra solución en la nube
+            es ecológica, económica y más eficiente.
           </p>
         </motion.div>
 
@@ -65,7 +65,7 @@ const IntegrationsSection = () => {
             <div className="relative rounded-2xl overflow-hidden shadow-card">
               <img
                 src={posTablet}
-                alt="POS con impresora fiscal"
+                alt="POS V3 funcionando en tablet"
                 className="w-full"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 to-transparent" />
@@ -81,7 +81,7 @@ const IntegrationsSection = () => {
             >
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-secondary animate-pulse" />
-                <span className="font-medium">Conectado al SENIAT</span>
+                <span className="font-medium">100% Ecológico</span>
               </div>
             </motion.div>
           </motion.div>
@@ -136,16 +136,16 @@ const IntegrationsSection = () => {
         >
           <div className="text-center mb-8">
             <h3 className="text-2xl font-heading font-bold mb-2">
-              Impresión Fiscal Instantánea
+              Facturación Digital Sostenible
             </h3>
             <p className="text-muted-foreground">
-              Cada venta genera automáticamente su factura fiscal impresa
+              Cada venta genera su factura digital certificada, sin papel ni impresoras
             </p>
           </div>
           <div className="relative rounded-2xl overflow-hidden shadow-card">
             <img
               src={fiscalPrinter}
-              alt="Impresora fiscal"
+              alt="Dashboard digital de POS V3"
               className="w-full"
             />
           </div>
