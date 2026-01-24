@@ -1,4 +1,4 @@
-import { Cloud, Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
+import { Cloud } from "lucide-react";
 
 const Footer = () => {
   const footerLinks = {
@@ -9,13 +9,6 @@ const Footer = () => {
       { label: "Demo", href: "#" },
     ],
   };
-
-  const socialLinks = [
-    { icon: Facebook, href: "#" },
-    { icon: Instagram, href: "#" },
-    { icon: Twitter, href: "#" },
-    { icon: Linkedin, href: "#" },
-  ];
 
   return (
     <footer className="bg-foreground text-primary-foreground py-16">
@@ -33,17 +26,6 @@ const Footer = () => {
               El sistema POS en la nube líder en Venezuela con integración
               fiscal completa.
             </p>
-            <div className="flex gap-4">
-              {socialLinks.map((social, index) => (
-                <a
-                  key={index}
-                  href={social.href}
-                  className="w-10 h-10 rounded-lg bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"
-                >
-                  <social.icon className="w-5 h-5" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Links */}
