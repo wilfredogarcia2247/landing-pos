@@ -120,6 +120,7 @@ const HeroSection = () => {
                   src={heroDashboard}
                   alt="POS V3 Dashboard"
                   className="w-full rounded-2xl shadow-card"
+                  loading="lazy"
                 />
               </motion.div>
 

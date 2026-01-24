@@ -70,6 +70,7 @@ const GallerySection = () => {
                 src={galleryItems[activeIndex].image}
                 alt={galleryItems[activeIndex].title}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-8">
@@ -101,6 +102,7 @@ const GallerySection = () => {
                   src={item.image}
                   alt={item.title}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-foreground/20" />
                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-foreground/80 to-transparent">

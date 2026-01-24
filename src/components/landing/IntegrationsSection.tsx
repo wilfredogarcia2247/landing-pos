@@ -68,6 +68,7 @@ const IntegrationsSection = () => {
                 src={posimg}
                 alt="POS V3 funcionando en tablet"
                 className="w-full"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 to-transparent" />
             </div>
@@ -163,6 +164,7 @@ const IntegrationsSection = () => {
                   src={imprentaImg}
                   alt="Integración con imprentas digitales"
                   className="w-full"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
               </div>
@@ -235,6 +237,7 @@ const IntegrationsSection = () => {
               src={ecoimg}
               alt="Dashboard digital de POS V3"
               className="w-full"
+              loading="lazy"
             />
           </div>
         </motion.div>
