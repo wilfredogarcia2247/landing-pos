@@ -41,7 +41,9 @@ const CTASection = () => {
               Prueba Gratis 14 Días
               <ArrowRight className="w-5 h-5" />
             </Button>
-            <Button variant="outline" size="xl" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+            <Button variant="outline" size="xl" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10" onClick={() => {
+              window.open('https://wa.me/58424643413', '_blank', 'noopener,noreferrer');
+            }}>
               Agendar Demo
             </Button>
           </motion.div>
