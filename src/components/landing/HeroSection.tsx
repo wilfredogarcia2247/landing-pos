@@ -114,7 +114,7 @@ const HeroSection = () => {
               >
                 <img
                   src={heroDashboard}
-                  alt="CloudPOS Dashboard"
+                  alt="POS V3 Dashboard"
                   className="w-full rounded-2xl shadow-card"
                 />
               </motion.div>

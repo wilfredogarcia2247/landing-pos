@@ -36,7 +36,7 @@ const CTASection = () => {
             transition={{ delay: 0.3 }}
             className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto"
           >
-            Únete a miles de negocios venezolanos que ya confían en CloudPOS
+            Únete a miles de negocios venezolanos que ya confían en POS V3
             para su facturación fiscal.
           </motion.p>
 
@@ -67,9 +67,9 @@ const CTASection = () => {
               <Phone className="w-5 h-5" />
               <span>+58 412 123 4567</span>
             </a>
-            <a href="mailto:ventas@cloudpos.com" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
+            <a href="mailto:ventas@posv3.com" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
               <Mail className="w-5 h-5" />
-              <span>ventas@cloudpos.com</span>
+              <span>ventas@posv3.com</span>
             </a>
           </motion.div>
         </motion.div>
