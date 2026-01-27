@@ -1,10 +1,9 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import heroDashboard from "@/assets/hero-principal.png";
-import posMobile from "@/assets/pos-mobile-app.jpg";
 import posStore from "@/assets/pos-store-usage.jpg";
 import posTablet from "@/assets/pos-usos-facturacion.png";
-
+import negocioNube from "@/assets/negocio-nube.png";
 const galleryItems = [
   {
     image: heroDashboard,
@@ -12,9 +11,9 @@ const galleryItems = [
     description: "Visualiza todas tus métricas importantes en un solo lugar",
   },
   {
-    image: posMobile,
-    title: "App Móvil",
-    description: "Controla tu negocio desde tu teléfono en cualquier momento",
+    image: negocioNube,
+    title: "Acceso Total desde cualquier Dispositivo",
+    description: "Gestiona tu negocio desde cualquier lugar, en cualquier momento, con total accesibilidad",
   },
   {
     image: posStore,
@@ -45,11 +44,11 @@ const GallerySection = () => {
           <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
             Galería
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-foreground">
             Conoce{" "}
             <span className="text-gradient">POS V3</span> por Dentro
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-foreground/90">
             Una experiencia visual diseñada para facilitar cada aspecto de tu
             negocio.
           </p>
@@ -72,12 +71,12 @@ const GallerySection = () => {
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-8">
-                <h3 className="text-2xl md:text-3xl font-heading font-bold text-primary-foreground mb-2">
+                <h3 className="text-2xl md:text-3xl font-heading font-bold text-white mb-2">
                   {galleryItems[activeIndex].title}
                 </h3>
-                <p className="text-primary-foreground/80 text-lg">
+                <p className="text-white/95 text-lg">
                   {galleryItems[activeIndex].description}
                 </p>
               </div>
