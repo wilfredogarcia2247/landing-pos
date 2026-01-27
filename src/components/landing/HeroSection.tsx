@@ -46,7 +46,7 @@ const HeroSection = () => {
               className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold leading-tight mb-6"
             >
               Tu Negocio,{" "}
-              <span className="text-gradient">Facturando Legal</span> desde
+              <span className="text-gradient">Facturando</span> desde
               Cualquier Lugar
             </motion.h1>
 
@@ -56,9 +56,8 @@ const HeroSection = () => {
               transition={{ delay: 0.4 }}
               className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0"
             >
-              El único POS venezolano con facturación fiscal 100 % digital,
-              integrado a imprentas fiscales digitales. Cumple con el SENIAT
-              eliminando papel, impresoras y costos innecesarios.
+              El único POS venezolano con facturación 100 % digital,
+              integrado a imprentas digitales. eliminando papel, impresoras y costos innecesarios.
             </motion.p>
 
             {/* Benefits */}

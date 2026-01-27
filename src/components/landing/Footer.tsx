@@ -1,4 +1,3 @@
-import { Cloud } from "lucide-react";
 
 const Footer = () => {
   const footerLinks = {
@@ -16,9 +15,9 @@ const Footer = () => {
         <div className="flex flex-col lg:flex-row gap-12 mb-12">
           {/* Brand */}
           <div className="flex-1">
-            <a href="#" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                <Cloud className="w-6 h-6 text-primary-foreground" />
+            <a href="#" className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-white/30 bg-white">
+                <img src="/src/assets/logo-inicio.png" alt="Logo" className="w-8 h-8 object-contain" />
               </div>
               <span className="text-xl font-heading font-bold">POS V3</span>
             </a>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Cloud } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,13 +25,13 @@ const Header = () => {
           {/* Logo */}
           <motion.a
             href="#"
-            className="flex items-center gap-2"
+            className="flex items-center gap-3"
             whileHover={{ scale: 1.02 }}
           >
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-              <Cloud className="w-6 h-6 text-primary-foreground" />
+            <div className="w-12 h-12 flex items-center justify-center rounded-full border border-border/30 bg-background/30">
+              <img src="/src/assets/logo-inicio.png" alt="Logo" className="w-8 h-8 object-contain" />
             </div>
-            <span className="text-xl font-heading font-bold text-foreground">
+            <span className="text-sm font-heading font-bold text-foreground">
               POS V3
             </span>
           </motion.a>
