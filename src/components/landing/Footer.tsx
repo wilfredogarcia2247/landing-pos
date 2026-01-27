@@ -17,7 +17,7 @@ const Footer = () => {
           <div className="flex-1">
             <a href="#" className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 flex items-center justify-center rounded-full border border-white/30 bg-white">
-                <img src="/src/assets/logo-inicio.png" alt="Logo" className="w-8 h-8 object-contain" />
+                <img src="/logo-inicio.png" alt="Logo" className="w-8 h-8 object-contain" />
               </div>
               <span className="text-xl font-heading font-bold">POS V3</span>
             </a>

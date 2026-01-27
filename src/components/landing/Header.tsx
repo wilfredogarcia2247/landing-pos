@@ -29,7 +29,7 @@ const Header = () => {
             whileHover={{ scale: 1.02 }}
           >
             <div className="w-12 h-12 flex items-center justify-center rounded-full border border-border/30 bg-background/30">
-              <img src="/src/assets/logo-inicio.png" alt="Logo" className="w-8 h-8 object-contain" />
+              <img src="/logo-inicio.png" alt="Logo" className="w-8 h-8 object-contain" />
             </div>
             <span className="text-sm font-heading font-bold text-foreground">
               POS V3
