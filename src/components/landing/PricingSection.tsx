@@ -136,6 +136,10 @@ const PricingSection = () => {
                 variant={plan.popular ? "hero" : "outline"}
                 className="w-full"
                 size="lg"
+                onClick={() => {
+                  const message = encodeURIComponent(`Hola, estoy interesado en el plan "${plan.name}" de POS V3. ¿Podrían darme más información?`);
+                  window.open(`https://wa.me/584246434313?text=${message}`, '_blank');
+                }}
               >
                 {plan.cta}
               </Button>
@@ -143,18 +147,6 @@ const PricingSection = () => {
           ))}
         </div>
 
-        {/* Guarantee */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="text-center mt-12"
-        >
-          <p className="text-muted-foreground">
-            🛡️ Garantía de devolución de 30 días • Sin preguntas
-          </p>
-        </motion.div>
       </div>
     </section>
   );
