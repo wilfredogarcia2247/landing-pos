@@ -45,7 +45,7 @@ const HeroSection = () => {
               transition={{ delay: 0.3 }}
               className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold leading-tight mb-6"
             >
-              Tu Negocio,{" "}
+              Tu Negocio{" "}
               <span className="text-gradient">Facturando</span> desde
               Cualquier Lugar
             </motion.h1>
