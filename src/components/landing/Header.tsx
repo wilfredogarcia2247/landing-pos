@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import RegistrationForm from "./RegistrationForm";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
 
   const navItems = [
     { label: "Características", href: "#features" },
@@ -60,7 +62,8 @@ const Header = () => {
               Iniciar Sesión
             </Button>
             <Button variant="hero" onClick={() => {
-              window.open('https://pos-demo.apps.icarosoft.com/register', '_blank', 'noopener,noreferrer');
+              console.log('Registration button clicked');
+              setIsRegistrationOpen(true);
             }}>
               Regístrate
             </Button>
@@ -80,13 +83,14 @@ const Header = () => {
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden mt-4 pb-4"
-          >
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden mt-4 pb-4"
+            >
             <nav className="flex flex-col gap-4">
               {navItems.map((item) => (
                 <a
@@ -105,15 +109,24 @@ const Header = () => {
                   Iniciar Sesión
                 </Button>
                 <Button variant="hero" className="w-full" onClick={() => {
-                  window.open('https://pos-demo.apps.icarosoft.com/register', '_blank', 'noopener,noreferrer');
+                  console.log('Mobile registration button clicked');
+                  setIsRegistrationOpen(true);
+                  setIsMenuOpen(false);
                 }}>
                   Regístrate
                 </Button>
               </div>
             </nav>
           </motion.div>
-        )}
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Registration Modal */}
+      <RegistrationForm 
+        isOpen={isRegistrationOpen} 
+        onClose={() => setIsRegistrationOpen(false)} 
+      />
     </motion.header>
   );
 };
