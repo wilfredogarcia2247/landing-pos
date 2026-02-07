@@ -32,7 +32,15 @@ import {
   CreditCard,
   Shield,
   Zap,
-  Lock
+  Lock,
+  Receipt,
+  Calculator,
+  TrendingUp,
+  Database,
+  Cloud,
+  FileCheck,
+  ArrowRight,
+  Loader2
 } from "lucide-react";
 
 interface RegistrationFormProps {
@@ -79,6 +87,8 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [processingStage, setProcessingStage] = useState(0);
 
   const businessTypes = [
     { value: "restaurant", label: "Restaurante / Comida Rápida" },
@@ -105,18 +115,35 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setProcessingStage(0);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Simulate billing/processing stages with animations
+    const stages = [
+      { icon: Database, title: "Validando Información", delay: 500 },
+      { icon: FileCheck, title: "Creando Cuenta", delay: 1000 },
+      { icon: Receipt, title: "Configurando Facturación", delay: 1500 },
+      { icon: Cloud, title: "Sincronizando con Sistema", delay: 2000 },
+      { icon: CheckCircle, title: "¡Listo para Facturar!", delay: 2500 }
+    ];
+
+    for (let i = 0; i < stages.length; i++) {
+      setProcessingStage(i);
+      await new Promise(resolve => setTimeout(resolve, stages[i].delay));
+    }
     
-    // Here you would normally send the data to your backend
+    // Here you would normally send data to your backend
     console.log("Form submitted:", formData);
     
     setIsSubmitting(false);
-    onClose();
+    setShowSuccess(true);
     
-    // Show success message or redirect
-    alert("¡Registro iniciado exitosamente! Nos contactaremos pronto.");
+    // Redirect after showing success message
+    setTimeout(() => {
+      window.open('https://pos-prod.apps.icarosoft.com/login', '_blank', 'noopener,noreferrer');
+      onClose();
+      setShowSuccess(false);
+      setProcessingStage(0);
+    }, 3000);
   };
 
   const isStepValid = (step: number) => {
@@ -481,34 +508,6 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
                 </div>
               </div>
 
-              {/* Benefits Card */}
-              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-primary" />
-                    Beneficios de registrarte:
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span>Facturación electrónica certificada</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span>Integración con SENIAT</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span>Soporte técnico 24/7</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span>Prueba gratuita por 14 días</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Terms and Conditions */}
               <div className="space-y-3">
                 <div className="flex items-start space-x-2">
@@ -585,6 +584,245 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
             )}
           </div>
         </form>
+
+        {/* Processing Animation */}
+        {isSubmitting && !showSuccess && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 bg-background/95 backdrop-blur-sm rounded-lg flex items-center justify-center"
+          >
+            <div className="text-center space-y-6 p-8 max-w-sm">
+              {/* Animated Invoice Icon */}
+              <motion.div
+                initial={{ scale: 0, rotate: 0 }}
+                animate={{ scale: 1, rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto border border-primary/20"
+              >
+                <Receipt className="w-10 h-10 text-primary" />
+              </motion.div>
+              
+              {/* Processing Stages */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-center space-x-2">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {processingStage === 0 && "Validando Información"}
+                    {processingStage === 1 && "Creando Cuenta"}
+                    {processingStage === 2 && "Configurando Facturación"}
+                    {processingStage === 3 && "Sincronizando con Sistema"}
+                    {processingStage === 4 && "¡Listo para Facturar!"}
+                  </h3>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-primary to-primary/70"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${((processingStage + 1) / 5) * 100}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+                
+                {/* Stage Indicators */}
+                <div className="flex justify-between items-center px-2">
+                  {[
+                    { icon: Database, label: "Validar" },
+                    { icon: FileCheck, label: "Crear" },
+                    { icon: Receipt, label: "Facturar" },
+                    { icon: Cloud, label: "Sincronizar" },
+                    { icon: CheckCircle, label: "Listo" }
+                  ].map((stage, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ scale: 0.8, opacity: 0.5 }}
+                      animate={{
+                        scale: processingStage >= index ? 1 : 0.8,
+                        opacity: processingStage >= index ? 1 : 0.5
+                      }}
+                      transition={{ duration: 0.3 }}
+                      className="flex flex-col items-center space-y-1"
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        processingStage >= index 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        <stage.icon className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">{stage.label}</span>
+                    </motion.div>
+                  ))}
+                </div>
+                
+                {/* Processing Details */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="space-y-2 text-sm text-muted-foreground"
+                >
+                  {processingStage === 0 && (
+                    <p>Verificando tus datos y disponibilidad de usuario...</p>
+                  )}
+                  {processingStage === 1 && (
+                    <p>Creando tu cuenta en ICARO POS...</p>
+                  )}
+                  {processingStage === 2 && (
+                    <p>Configurando tu perfil de facturación electrónica...</p>
+                  )}
+                  {processingStage === 3 && (
+                    <p>Sincronizando con el sistema fiscal...</p>
+                  )}
+                  {processingStage === 4 && (
+                    <p className="text-green-600 font-medium">¡Todo listo para empezar!</p>
+                  )}
+                </motion.div>
+              </div>
+              
+              {/* Floating Elements */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+                <motion.div
+                  initial={{ x: -50, y: -50, opacity: 0 }}
+                  animate={{ x: 100, y: 100, opacity: [0, 1, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, delay: 0 }}
+                  className="absolute w-2 h-2 bg-primary/30 rounded-full"
+                />
+                <motion.div
+                  initial={{ x: 50, y: -50, opacity: 0 }}
+                  animate={{ x: -100, y: 100, opacity: [0, 1, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+                  className="absolute w-2 h-2 bg-primary/30 rounded-full"
+                />
+                <motion.div
+                  initial={{ x: 0, y: 50, opacity: 0 }}
+                  animate={{ x: 0, y: -100, opacity: [0, 1, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, delay: 2 }}
+                  className="absolute w-2 h-2 bg-primary/30 rounded-full"
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Success Message */}
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="absolute inset-0 bg-gradient-to-br from-green-50/95 to-primary/5 backdrop-blur-sm rounded-lg flex items-center justify-center"
+          >
+            <div className="text-center space-y-6 p-8 max-w-sm">
+              {/* Success Icon with Ring Animation */}
+              <div className="relative">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto shadow-lg"
+                >
+                  <CheckCircle className="w-10 h-10 text-white" />
+                </motion.div>
+                
+                {/* Animated Ring */}
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 1 }}
+                  animate={{ scale: 1.5, opacity: 0 }}
+                  transition={{ delay: 0.3, duration: 1, repeat: 2 }}
+                  className="absolute inset-0 w-20 h-20 bg-green-500/20 rounded-full mx-auto"
+                />
+              </div>
+              
+              {/* Success Text */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="space-y-3"
+              >
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-primary bg-clip-text text-transparent">
+                  ¡Registro Exitoso!
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Tu cuenta ha sido creada exitosamente.
+                  <br />
+                  <span className="text-primary font-medium">ICARO POS</span> está listo para ti.
+                </p>
+              </motion.div>
+              
+              {/* Invoice Animation */}
+              <motion.div
+                initial={{ opacity: 0, rotate: -10 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                transition={{ delay: 0.6, type: "spring" }}
+                className="w-16 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center mx-auto border border-primary/20 shadow-sm"
+              >
+                <Receipt className="w-8 h-8 text-primary" />
+              </motion.div>
+              
+              {/* Redirect Message */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="space-y-3"
+              >
+                <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  <span>Redirigiendo al inicio de sesión...</span>
+                </div>
+                
+                {/* Countdown Timer */}
+                <div className="flex justify-center space-x-1">
+                  {[0, 1, 2].map((dot) => (
+                    <motion.div
+                      key={dot}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: [0, 1, 0] }}
+                      transition={{ 
+                        duration: 1, 
+                        repeat: Infinity, 
+                        delay: dot * 0.2,
+                        repeatDelay: 0.5
+                      }}
+                      className="w-2 h-2 bg-primary rounded-full"
+                    />
+                  ))}
+                </div>
+              </motion.div>
+              
+              {/* Confetti Effect */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ 
+                      x: Math.random() * 200 - 100,
+                      y: Math.random() * 200 - 100,
+                      rotate: 0,
+                      opacity: 0
+                    }}
+                    animate={{ 
+                      x: Math.random() * 300 - 150,
+                      y: Math.random() * 300 - 150,
+                      rotate: 360,
+                      opacity: [0, 1, 0]
+                    }}
+                    transition={{ 
+                      duration: 2, 
+                      repeat: Infinity, 
+                      delay: i * 0.3,
+                      repeatDelay: 1
+                    }}
+                    className="absolute w-1 h-4 bg-gradient-to-b from-primary to-green-500 rounded-full"
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
       </DialogContent>
     </Dialog>
   );
