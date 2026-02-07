@@ -76,7 +76,6 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
     
     // Información Fiscal
     fiscalRegime: "",
-    taxWithholding: "",
     
     // Términos y Condiciones
     acceptTerms: false,
@@ -99,9 +98,8 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
   ];
 
   const fiscalRegimes = [
-    { value: "simplified", label: "Régimen Simplificado" },
-    { value: "normal", label: "Régimen Normal" },
-    { value: "special", label: "Régimen Especial" },
+    { value: "ordinary", label: "Contribuyente Ordinario" },
+    { value: "special", label: "Contribuyente Especial" },
   ];
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -187,26 +185,62 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Progress Steps */}
           <div className="flex items-center justify-between mb-8">
-            {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    currentStep >= step
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {currentStep > step ? (
-                    <CheckCircle className="w-4 h-4" />
-                  ) : (
-                    step
-                  )}
-                </div>
-                {step < 4 && (
-                  <div
-                    className={`w-full h-1 mx-2 ${
-                      currentStep > step ? "bg-primary" : "bg-muted"
+            {[
+              { step: 1, label: "Cuenta", icon: User },
+              { step: 2, label: "Empresa", icon: Building },
+              { step: 3, label: "Dirección", icon: MapPin },
+              { step: 4, label: "Fiscal", icon: Shield }
+            ].map((item, index) => (
+              <div key={item.step} className="flex items-center flex-1">
+                <div className="flex items-center">
+                  <motion.div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all ${
+                      currentStep >= item.step
+                        ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                        : "bg-muted text-muted-foreground border-muted"
                     }`}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {currentStep > item.step ? (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 200 }}
+                      >
+                        <CheckCircle className="w-5 h-5" />
+                      </motion.div>
+                    ) : (
+                      <item.icon className="w-5 h-5" />
+                    )}
+                  </motion.div>
+                  
+                  <motion.div
+                    className="ml-3"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ 
+                      opacity: currentStep >= item.step ? 1 : 0.5,
+                      x: currentStep >= item.step ? 0 : -10
+                    }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <span className={`text-sm font-medium ${
+                      currentStep >= item.step ? "text-foreground" : "text-muted-foreground"
+                    }`}>
+                      {item.label}
+                    </span>
+                  </motion.div>
+                </div>
+                
+                {index < 3 && (
+                  <motion.div
+                    className={`flex-1 h-1 mx-3 transition-all ${
+                      currentStep > item.step ? "bg-primary" : "bg-muted"
+                    }`}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: currentStep > item.step ? 1 : 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    style={{ originX: 0 }}
                   />
                 )}
               </div>
@@ -222,7 +256,20 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
             >
               {/* Campos de Cuenta */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-primary">Información de Cuenta</h3>
+                <motion.h3 
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-lg font-semibold text-primary flex items-center gap-2"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <User className="w-5 h-5" />
+                  </motion.div>
+                  Información de Cuenta
+                </motion.h3>
                 
                 <div className="space-y-2">
                   <Label htmlFor="username" className="flex items-center gap-2">
@@ -277,7 +324,20 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
 
               {/* Campos Personales */}
               <div className="space-y-4 pt-4 border-t">
-                <h3 className="text-lg font-semibold text-primary">Información Personal</h3>
+                <motion.h3 
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-lg font-semibold text-primary flex items-center gap-2"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, -10, 10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <Mail className="w-5 h-5" />
+                  </motion.div>
+                  Información Personal
+                </motion.h3>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -341,6 +401,20 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-4"
             >
+              <motion.h3 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-lg font-semibold text-primary flex items-center gap-2"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <Building className="w-5 h-5" />
+                </motion.div>
+                Información de la Empresa
+              </motion.h3>
               <div className="space-y-2">
                 <Label htmlFor="businessName" className="flex items-center gap-2">
                   <Building className="w-4 h-4" />
@@ -408,6 +482,20 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-4"
             >
+              <motion.h3 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-lg font-semibold text-primary flex items-center gap-2"
+              >
+                <motion.div
+                  animate={{ rotate: [0, 180, 360] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                >
+                  <MapPin className="w-5 h-5" />
+                </motion.div>
+                Dirección Fiscal
+              </motion.h3>
               <div className="space-y-2">
                 <Label htmlFor="address" className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
@@ -454,6 +542,20 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-6"
             >
+              <motion.h3 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-lg font-semibold text-primary flex items-center gap-2"
+              >
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                >
+                  <Shield className="w-5 h-5" />
+                </motion.div>
+                Información Fiscal y Términos
+              </motion.h3>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="fiscalRegime" className="flex items-center gap-2">
@@ -473,25 +575,6 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
                           {regime.label}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="taxWithholding" className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    Porcentaje de Retención IVA
-                  </Label>
-                  <Select
-                    value={formData.taxWithholding}
-                    onValueChange={(value) => handleInputChange("taxWithholding", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el porcentaje" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="75">75%</SelectItem>
-                      <SelectItem value="100">100%</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
