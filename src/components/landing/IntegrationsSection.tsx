@@ -66,7 +66,7 @@ const IntegrationsSection = () => {
             <div className="relative rounded-2xl overflow-hidden shadow-card">
               <img
                 src={posimg}
-                alt="POS V3 funcionando en tablet"
+                alt="ICARO POS funcionando en tablet"
                 className="w-full"
                 loading="lazy"
               />
@@ -235,7 +235,7 @@ const IntegrationsSection = () => {
           <div className="relative rounded-2xl overflow-hidden shadow-card">
             <img
               src={ecoimg}
-              alt="Dashboard digital de POS V3"
+              alt="Dashboard digital de ICARO POS"
               className="w-full"
               loading="lazy"
             />

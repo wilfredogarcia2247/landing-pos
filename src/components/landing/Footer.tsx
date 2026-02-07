@@ -19,7 +19,7 @@ const Footer = () => {
               <div className="w-12 h-12 flex items-center justify-center rounded-full border border-white/30 bg-white">
                 <img src="/logo-inicio.png" alt="Logo" className="w-8 h-8 object-contain" />
               </div>
-              <span className="text-xl font-heading font-bold">POS V3</span>
+              <span className="text-xl font-heading font-bold">ICARO POS</span>
             </a>
             <p className="text-primary-foreground/70 mb-6 max-w-md">
               El sistema POS en la nube líder en Venezuela con integración

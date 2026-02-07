@@ -117,7 +117,7 @@ const HeroSection = () => {
               >
                 <img
                   src={heroDashboard}
-                  alt="POS V3 Dashboard"
+                  alt="ICARO POS Dashboard"
                   className="w-full rounded-2xl shadow-card"
                   loading="lazy"
                 />

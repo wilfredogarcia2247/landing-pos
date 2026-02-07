@@ -1,4 +1,4 @@
-# POS V3 - Sistema de Punto de Venta
+# ICARO POS - Sistema de Punto de Venta
 
 Sistema POS profesional desarrollado por Icarosoft para gestionar ventas, inventario y facturación.
 

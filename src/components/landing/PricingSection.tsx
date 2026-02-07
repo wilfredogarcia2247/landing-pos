@@ -137,7 +137,7 @@ const PricingSection = () => {
                 className="w-full"
                 size="lg"
                 onClick={() => {
-                  const message = encodeURIComponent(`Hola, estoy interesado en el plan "${plan.name}" de POS V3. ¿Podrían darme más información?`);
+                  const message = encodeURIComponent(`Hola, estoy interesado en el plan "${plan.name}" de ICARO POS. ¿Podrían darme más información?`);
                   window.open(`https://wa.me/584246434313?text=${message}`, '_blank');
                 }}
               >

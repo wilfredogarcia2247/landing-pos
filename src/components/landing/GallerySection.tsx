@@ -46,7 +46,7 @@ const GallerySection = () => {
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-foreground">
             Conoce{" "}
-            <span className="text-gradient">POS V3</span> por Dentro
+            <span className="text-gradient">ICARO POS</span> por Dentro
           </h2>
           <p className="text-lg text-foreground/90">
             Una experiencia visual diseñada para facilitar cada aspecto de tu
