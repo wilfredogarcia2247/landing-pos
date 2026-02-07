@@ -54,10 +54,15 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="hero" onClick={() => {
-              window.open('https://pos-demo.apps.icarosoft.com/login', '_blank', 'noopener,noreferrer');
+            <Button variant="ghost" onClick={() => {
+              window.open('https://pos-prod.apps.icarosoft.com/login', '_blank', 'noopener,noreferrer');
             }}>
-              Prueba Gratis
+              Iniciar Sesión
+            </Button>
+            <Button variant="hero" onClick={() => {
+              window.open('https://pos-demo.apps.icarosoft.com/register', '_blank', 'noopener,noreferrer');
+            }}>
+              Regístrate
             </Button>
           </div>
 
@@ -94,11 +99,15 @@ const Header = () => {
                 </a>
               ))}
               <div className="flex flex-col gap-2 pt-4">
-                <Button variant="ghost" className="w-full">
+                <Button variant="ghost" className="w-full" onClick={() => {
+                  window.open('https://pos-demo.apps.icarosoft.com/login', '_blank', 'noopener,noreferrer');
+                }}>
                   Iniciar Sesión
                 </Button>
-                <Button variant="hero" className="w-full">
-                  Prueba Gratis
+                <Button variant="hero" className="w-full" onClick={() => {
+                  window.open('https://pos-demo.apps.icarosoft.com/register', '_blank', 'noopener,noreferrer');
+                }}>
+                  Regístrate
                 </Button>
               </div>
             </nav>
