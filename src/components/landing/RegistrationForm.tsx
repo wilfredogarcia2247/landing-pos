@@ -73,7 +73,6 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
     address: "",
     city: "",
     state: "",
-    zipCode: "",
     
     // Información Fiscal
     fiscalRegime: "",
@@ -444,16 +443,6 @@ const RegistrationForm = ({ isOpen, onClose }: RegistrationFormProps) => {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="zipCode">Código Postal</Label>
-                <Input
-                  id="zipCode"
-                  value={formData.zipCode}
-                  onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                  placeholder="1010"
-                />
               </div>
             </motion.div>
           )}
