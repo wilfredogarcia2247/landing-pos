@@ -1,9 +1,19 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, CheckCircle2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import heroDashboard from "@/assets/hero-principal.png";
 
 const HeroSection = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const benefits = [
     "Sin instalación",
     "Facturación fiscal",
@@ -11,8 +21,13 @@ const HeroSection = () => {
     "Sin Necesidad de papel",
     "Sin Necesidad de impresoras",
   ];
+  const demoCredentials = {
+    username: "demo01",
+    password: "demo01",
+  };
 
   return (
+    <>
     <section className="relative min-h-screen gradient-hero overflow-hidden pt-24">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
@@ -89,9 +104,13 @@ const HeroSection = () => {
                 Comenzar Prueba Gratis
                 <ArrowRight className="w-5 h-5" />
               </Button>
-              <Button variant="outline" size="xl" onClick={() => {
-                window.open('https://pos-demo.apps.icarosoft.com', '_blank', 'noopener,noreferrer');
-              }}>
+              <Button
+                variant="outline"
+                size="xl"
+                onClick={() => {
+                  setIsDemoModalOpen(true);
+                }}
+              >
                 <Play className="w-5 h-5" />
                 Ver Demo
               </Button>
@@ -165,6 +184,41 @@ const HeroSection = () => {
         </motion.div>
       </motion.div>
     </section>
+    <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Acceso demo</DialogTitle>
+          <DialogDescription>
+            Usa estas credenciales para ingresar al demo de ICARO POS.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-muted-foreground">Usuario</span>
+            <span className="font-semibold">{demoCredentials.username}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-muted-foreground">Clave</span>
+            <span className="font-semibold">{demoCredentials.password}</span>
+          </div>
+        </div>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => setIsDemoModalOpen(false)}>
+            Cerrar
+          </Button>
+          <Button
+            variant="hero"
+            onClick={() => {
+              setIsDemoModalOpen(false);
+              window.location.href = "https://pos-demo.apps.icarosoft.com";
+            }}
+          >
+            Ir al demo
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
