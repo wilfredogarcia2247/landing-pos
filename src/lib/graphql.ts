@@ -7,14 +7,16 @@ type GraphQLResponse<T> = {
   errors?: GraphQLError[];
 };
 
-export const GRAPHQL_ENDPOINT =
-  import.meta.env.VITE_GRAPHQL_ENDPOINT;
+export const GRAPHQL_ENDPOINT = import.meta.env.VITE_GRAPHQL_ENDPOINT;
 
-  
 export async function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<T> {
+  if (!GRAPHQL_ENDPOINT) {
+    throw new Error("Falta VITE_GRAPHQL_ENDPOINT. Configúrala en el build de producción.");
+  }
+
   const response = await fetch(GRAPHQL_ENDPOINT, {
     method: "POST",
     headers: {
