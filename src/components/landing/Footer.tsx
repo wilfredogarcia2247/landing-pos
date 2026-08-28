@@ -1,5 +1,9 @@
 
+import { useState } from "react";
+import DemoAccessDialog from "./DemoAccessDialog";
+
 const Footer = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const footerLinks = {
     Producto: [
       { label: "Características", href: "#features" },
@@ -36,6 +40,14 @@ const Footer = () => {
                   key={link.label}
                   href={link.href}
                   className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+                  onClick={(event) => {
+                    if (link.label !== "Demo") {
+                      return;
+                    }
+
+                    event.preventDefault();
+                    setIsDemoModalOpen(true);
+                  }}
                 >
                   {link.label}
                 </a>
@@ -54,6 +66,8 @@ const Footer = () => {
           </p>
         </div>
       </div>
+
+      <DemoAccessDialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen} />
     </footer>
   );
 };
