@@ -8,12 +8,12 @@ const plans = [
     price: "10",
     description: "Perfecto para negocios con bajo volumen de facturación",
     features: [
-      "Hasta 100 facturas al mes",
+      "Hasta 100 facturas al mes o $1.000",
       "1 punto de venta",
-      "Hasta 500 productos",
-      "Reportes básicos",
+      "Productos ilimitados",
+      "Usuarios ilimitados",
+      "Acceso a todos los reportes",
       "Soporte por email",
-      "1 usuario",
     ],
     popular: false,
     cta: "Comenzar",
@@ -23,31 +23,31 @@ const plans = [
     price: "25",
     description: "Ideal para negocios con volumen moderado de facturación",
     features: [
-      "Hasta 500 facturas al mes",
+      "Hasta 500 facturas al mes o $2.500",
       "3 puntos de venta",
       "Productos ilimitados",
-      "Soporte prioritario",
-      "5 usuarios",
-      "Control de inventario",
+      "Usuarios ilimitados",
+      "Acceso a todos los reportes",
+      "Soporte por email y WhatsApp",
     ],
     popular: true,
     cta: "Más Popular",
   },
   {
     name: "Empresarial",
-    price: "50",
+    price: null,
     description: "Para empresas con alto volumen de facturación",
     features: [
       "Facturas ilimitadas",
       "Puntos de venta ilimitados",
       "Productos ilimitados",
-      "Reportes personalizados",
-      "Soporte dedicado",
       "Usuarios ilimitados",
+      "Reportes personalizados",
       "Capacitación incluida",
+      "Soporte por llamada, WhatsApp y correo electrónico",
     ],
     popular: false,
-    cta: "Contactar Ventas",
+    cta: "Contáctanos",
   },
 ];
 
@@ -93,7 +93,7 @@ const PricingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1, duration: 0.6 }}
-              className={`relative p-8 rounded-2xl ${
+              className={`relative p-8 rounded-2xl flex flex-col h-full ${
                 plan.popular
                   ? "bg-card border-2 border-primary shadow-card scale-105"
                   : "bg-card border border-border"
@@ -115,12 +115,23 @@ const PricingSection = () => {
                 <p className="text-muted-foreground text-sm mb-4">
                   {plan.description}
                 </p>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl md:text-5xl font-heading font-bold">
-                    ${plan.price}
-                  </span>
-                  <span className="text-muted-foreground">/mes</span>
-                </div>
+                {plan.price ? (
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-4xl md:text-5xl font-heading font-bold">
+                      ${plan.price}
+                    </span>
+                    <span className="text-muted-foreground">/mes</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1 min-h-[3.5rem] justify-center">
+                    <span className="text-3xl md:text-4xl font-heading font-bold">
+                      A medida
+                    </span>
+                    <span className="text-muted-foreground text-sm">
+                      Contáctanos para una contratación personalizada
+                    </span>
+                  </div>
+                )}
               </div>
 
               <ul className="space-y-4 mb-8">
@@ -134,11 +145,13 @@ const PricingSection = () => {
 
               <Button
                 variant={plan.popular ? "hero" : "outline"}
-                className="w-full"
+                className="w-full mt-auto"
                 size="lg"
                 onClick={() => {
-                  const message = encodeURIComponent(`Hola, estoy interesado en el plan "${plan.name}" de ICARO POS. ¿Podrían darme más información?`);
-                  window.open(`https://wa.me/584246434313?text=${message}`, '_blank');
+                  const text = plan.price
+                    ? `Hola, estoy interesado en el plan "${plan.name}" de ICARO POS. ¿Podrían darme más información?`
+                    : `Hola, me interesa una contratación personalizada del plan Empresarial de ICARO POS. ¿Podrían contactarme?`;
+                  window.open(`https://wa.me/584246434313?text=${encodeURIComponent(text)}`, "_blank");
                 }}
               >
                 {plan.cta}
