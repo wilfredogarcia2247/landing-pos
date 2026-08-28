@@ -243,4 +243,24 @@
       transform: translateY(-20px);
     }
   }
+
+  @keyframes gallery-progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .gallery-progress-bar {
+    transform-origin: left;
+    animation: gallery-progress linear forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery-progress-bar {
+      animation: none;
+    }
+  }
 }
