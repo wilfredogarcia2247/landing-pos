@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import RegistrationForm from "./RegistrationForm";
+import RegistroMultidbForm from "./RegistroMultidbForm";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
+  const [isMultidbOpen, setIsMultidbOpen] = useState(false);
 
   const navItems = [
     { label: "Características", href: "#features" },
@@ -68,12 +70,7 @@ const Header = () => {
               Regístrate
             </Button>
             {/* Registro multidb: alta de empresa + base de datos dedicada */}
-            <Button
-              variant="outline"
-              onClick={() => {
-                window.open('https://pos-prod.apps.icarosoft.com/registro-multidb', '_blank', 'noopener,noreferrer');
-              }}
-            >
+            <Button variant="outline" onClick={() => setIsMultidbOpen(true)}>
               Registro multidb
             </Button>
           </div>
@@ -135,6 +132,12 @@ const Header = () => {
       <RegistrationForm 
         isOpen={isRegistrationOpen} 
         onClose={() => setIsRegistrationOpen(false)} 
+      />
+
+      {/* Registro multidb Modal */}
+      <RegistroMultidbForm
+        isOpen={isMultidbOpen}
+        onClose={() => setIsMultidbOpen(false)}
       />
     </motion.header>
   );
