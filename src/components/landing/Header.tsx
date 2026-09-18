@@ -67,6 +67,15 @@ const Header = () => {
             }}>
               Regístrate
             </Button>
+            {/* Registro multidb: alta de empresa + base de datos dedicada */}
+            <Button
+              variant="outline"
+              onClick={() => {
+                window.open('https://pos-prod.apps.icarosoft.com/registro-multidb', '_blank', 'noopener,noreferrer');
+              }}
+            >
+              Registro multidb
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
