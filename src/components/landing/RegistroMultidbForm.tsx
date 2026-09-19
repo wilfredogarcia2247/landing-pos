@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   AlertTriangle,
   CheckCircle,
+  Database,
   IdCard,
   Loader2,
   Mail,
@@ -214,6 +215,47 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     }
   }, [verificacion]);
 
+  // Progreso del registro: barra animada + frases motivacionales mientras
+  // el backend crea la empresa, la base de datos y el aprovisionamiento.
+  const [progreso, setProgreso] = useState(0);
+  const [fraseIdx, setFraseIdx] = useState(0);
+  const registrando = form.formState.isSubmitting;
+
+  const FRASES = [
+    "Preparando tu empresa para crecer... 🚀",
+    "Construyendo tu base de datos dedicada... 🏗️",
+    "Configurando tu sucursal principal... 🏪",
+    "Preparando tu sistema de facturación fiscal... 🧾",
+    "Dejando todo listo para tu primera venta... 💰",
+    "Casi listo: tu negocio en la nube se está armando... ☁️",
+  ];
+
+  useEffect(() => {
+    if (!registrando) {
+      setProgreso(0);
+      return;
+    }
+    // La barra avanza suavemente hasta 95% (el 100% llega con la respuesta)
+    const intervalo = setInterval(() => {
+      setProgreso((p) => {
+        if (p >= 95) return 95;
+        // Avanza más rápido al inicio, más lento al final (sensación de trabajo real)
+        const incremento = p < 40 ? 3 : p < 70 ? 1.5 : 0.5;
+        return Math.min(p + incremento, 95);
+      });
+    }, 400);
+    return () => clearInterval(intervalo);
+  }, [registrando]);
+
+  useEffect(() => {
+    if (!registrando) return;
+    // Cambia la frase cada ~3.5 segundos
+    const intervalo = setInterval(() => {
+      setFraseIdx((i) => (i + 1) % FRASES.length);
+    }, 3500);
+    return () => clearInterval(intervalo);
+  }, [registrando]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
@@ -226,7 +268,61 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        {resultado ? (
+        {registrando ? (
+          /* ============ PANTALLA DE PROGRESO ============ */
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="py-10 px-4 text-center space-y-6"
+          >
+            {/* Icono animado */}
+            <div className="relative mx-auto h-20 w-20">
+              <motion.div
+                className="absolute inset-0 rounded-full border-4 border-primary/20"
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+              >
+                <div className="h-full w-full rounded-full border-t-4 border-primary" />
+              </motion.div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Database className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-heading font-bold">
+                Estamos creando tu empresa
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Esto toma unos segundos. No cierres esta ventana.
+              </p>
+            </div>
+
+            {/* Barra de progreso */}
+            <div className="max-w-sm mx-auto">
+              <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
+                  animate={{ width: `${progreso}%` }}
+                  transition={{ ease: "easeOut", duration: 0.4 }}
+                />
+              </div>
+              <p className="text-xs font-semibold text-primary mt-2">
+                {Math.round(progreso)}%
+              </p>
+            </div>
+
+            {/* Frase motivacional rotativa */}
+            <motion.p
+              key={fraseIdx}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm font-medium text-foreground/80 min-h-[2.5rem] flex items-center justify-center px-4"
+            >
+              {FRASES[fraseIdx]}
+            </motion.p>
+          </motion.div>
+        ) : resultado ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
