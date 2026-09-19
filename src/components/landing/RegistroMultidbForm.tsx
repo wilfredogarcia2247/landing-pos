@@ -233,31 +233,8 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              <FormField
-                control={form.control}
-                name="codigo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      Código de empresa <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="mi-empresa"
-                        autoComplete="off"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value.toLowerCase())}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Identificador único (3-30 caracteres). Se verifica en
-                      tiempo real contra el catálogo y los clientes existentes.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Código de empresa: OCULTO — se llena automáticamente con el RIF */}
+              <input type="hidden" {...form.register("codigo")} />
 
               <FormField
                 control={form.control}
@@ -274,12 +251,17 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                         autoComplete="off"
                         className="uppercase"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        onChange={(e) => {
+                          const valor = e.target.value.toUpperCase();
+                          field.onChange(valor);
+                          // El código de empresa ES el RIF (sincronizado)
+                          form.setValue("codigo", valor);
+                        }}
                       />
                     </FormControl>
                     <FormDescription>
-                      Se verifica contra los clientes existentes para evitar
-                      registros duplicados.
+                      Identifica tu empresa y tu base de datos. Se verifica en
+                      tiempo real contra el catálogo y los clientes existentes.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -290,7 +272,7 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
               {verificando && (
                 <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                  Verificando disponibilidad del código...
+                  Verificando disponibilidad del RIF...
                 </div>
               )}
 
@@ -309,8 +291,8 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                       <XCircle className="h-4 w-4 text-destructive shrink-0" />
                     )}
                     {verificacion.puede_registrar
-                      ? "Código disponible para registro"
-                      : "No se puede registrar con este código"}
+                      ? "RIF disponible para registro"
+                      : "No se puede registrar con este RIF"}
                   </div>
                   <ul className="space-y-1 text-xs text-muted-foreground">
                     <li className="flex items-center gap-1.5">
