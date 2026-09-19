@@ -14,7 +14,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  Store,
   XCircle,
 } from "lucide-react";
 import {
@@ -68,9 +67,7 @@ const registroMultidbSchema = z
     direccion_empresa: z.string().trim().optional().default(""),
     estado: z.string().trim().optional().default(""),
     ciudad: z.string().trim().optional().default(""),
-    // Sucursal principal
-    nombre_sucursal: z.string().trim().min(1, "El nombre de la sucursal es necesario"),
-    direccion_sucursal: z.string().trim().optional().default(""),
+    // Sucursal principal: se genera automáticamente (<RIF>-SUC01)
     // Usuario administrador
     nombre_usuario: z.string().trim().min(1, "El nombre del administrador es necesario"),
     correo_admin: z.string().trim().toLowerCase().email("El correo del administrador es necesario"),
@@ -95,8 +92,6 @@ const defaultValues: FormValues = {
   direccion_empresa: "",
   estado: "",
   ciudad: "",
-  nombre_sucursal: "",
-  direccion_sucursal: "",
   repetir_contrasena: "",
 };
 
@@ -189,7 +184,7 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
             Registro multidb
           </DialogTitle>
           <DialogDescription className="text-center">
-            Registra tu empresa, tu sucursal principal y tu administrador.
+            Registra tu empresa y tu administrador.
             La base de datos dedicada se crea automáticamente.
             dedicada en la nube.
           </DialogDescription>
@@ -357,73 +352,19 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                   />
                   <FormField
                     control={form.control}
-                    name="rif"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <IdCard className="h-4 w-4" />
-                          RIF fiscal <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="J123456789"
-                            autoComplete="off"
-                            className="uppercase"
-                            {...field}
-                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="codigo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Código de empresa <span className="text-destructive">*</span></FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="mi-empresa"
-                            autoComplete="off"
-                            {...field}
-                            onChange={(e) => field.onChange(e.target.value.toLowerCase())}
-                          />
-                        </FormControl>
-                        <FormDescription>Identificador único (3-30 caracteres).</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="telefono_empresa"
+                    name="telefono"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <Phone className="h-4 w-4" />
-                          Teléfono de la empresa <span className="text-destructive">*</span>
+                          Teléfono <span className="text-destructive">*</span>
                         </FormLabel>
                         <FormControl>
-                          <Input type="tel" placeholder="+58 261 1234567" autoComplete="tel" {...field} />
+                          <Input type="tel" placeholder="+58 424 1234567" autoComplete="tel" {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="celular_empresa"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          Teléfono opcional
-                        </FormLabel>
-                        <FormControl>
-                          <Input type="tel" placeholder="+58 424 1234567" {...field} />
-                        </FormControl>
+                        <FormDescription>
+                          Se usa para la empresa, la sucursal y el administrador.
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -471,64 +412,6 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                         </FormLabel>
                         <FormControl>
                           <Input placeholder="Maracaibo" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* ============ SUCURSAL PRINCIPAL ============ */}
-              <div className="space-y-4 border-t pt-4">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                  <Store className="h-4 w-4" /> Sucursal principal
-                </h4>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="nombre_sucursal"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nombre de sucursal <span className="text-destructive">*</span></FormLabel>
-                        <FormControl>
-                          <Input placeholder="Sucursal Principal" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Si lo dejas vacío se genera automáticamente con el RIF.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="telefono_sucursal"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          Teléfono sucursal <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input type="tel" placeholder="+58 261 7654321" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="direccion_sucursal"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2">
-                        <FormLabel className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          Dirección de la sucursal
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="Av. Principal, Sector Centro" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -603,31 +486,14 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="telefono_usuario"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          Teléfono del administrador <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input type="tel" placeholder="+58 424 7654321" autoComplete="tel" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               </div>
 
               <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground flex items-start gap-2">
                 <Database className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>
-                  Al confirmar se creará tu empresa, tu sucursal principal, tu
-                  usuario administrador y una base de datos dedicada en el
-                  servidor con espacio disponible.
+                  Al confirmar se creará tu empresa, tu usuario administrador
+                  y una base de datos dedicada en el servidor con espacio disponible.
                 </span>
               </div>
 

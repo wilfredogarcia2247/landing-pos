@@ -7,21 +7,16 @@ import { graphqlRequest } from "@/lib/graphql";
 // ------------------------------------------
 
 export type RegistroMultidbFormValues = {
-  codigo: string;
+  codigo: string;          // = RIF fiscal (se llena automáticamente)
   nombre_empresa: string;
   rif: string;
   correo_admin: string;
   contrasena: string;
   nombre_usuario: string;
-  telefono_usuario: string;
-  telefono_empresa: string;
-  celular_empresa: string;
+  telefono: string;        // único teléfono: empresa + sucursal + admin
   direccion_empresa: string;
   estado: string;
   ciudad: string;
-  nombre_sucursal: string;
-  direccion_sucursal: string;
-  telefono_sucursal: string;
 };
 
 export type RegistroMultidbResult = {
@@ -176,15 +171,18 @@ export async function registrarMaestroCliente(
       correo_admin: values.correo_admin.trim().toLowerCase(),
       contrasena: values.contrasena,
       nombre_usuario: values.nombre_usuario?.trim() || null,
-      telefono_usuario: values.telefono_usuario?.trim() || null,
-      telefono_empresa: values.telefono_empresa?.trim() || null,
-      celular_empresa: values.celular_empresa?.trim() || null,
+      // Un solo teléfono para todo: empresa, sucursal y administrador
+      telefono_usuario: values.telefono?.trim() || null,
+      telefono_empresa: values.telefono?.trim() || null,
+      celular_empresa: values.telefono?.trim() || null,
       direccion_empresa: values.direccion_empresa?.trim() || null,
       estado: values.estado?.trim() || null,
       ciudad: values.ciudad?.trim() || null,
-      nombre_sucursal: values.nombre_sucursal?.trim() || null,
-      direccion_sucursal: values.direccion_sucursal?.trim() || null,
-      telefono_sucursal: values.telefono_sucursal?.trim() || null,
+      // Sucursal 100% automática: nombre <RIF>-SUC01 (lo genera el backend
+      // cuando nombre_sucursal es null), misma dirección y teléfono.
+      nombre_sucursal: null,
+      direccion_sucursal: values.direccion_empresa?.trim() || null,
+      telefono_sucursal: values.telefono?.trim() || null,
     },
   );
 
