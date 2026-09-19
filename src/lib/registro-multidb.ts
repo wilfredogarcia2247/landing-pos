@@ -6,6 +6,70 @@ import { graphqlRequest } from "@/lib/graphql";
 // (catálogo maestro_server, públicas, sin JWT).
 // ------------------------------------------
 
+// ------------------------------------------
+// Estados y ciudades (selects dependientes)
+// Usa los resolvers estadosVenezuela / ciudadesPorEstado del backend
+// (tablas configuracion_estado / configuracion_ciudad).
+// Se muestra el NOMBRE y se guarda el CÓDIGO.
+// ------------------------------------------
+
+export type EstadoVE = {
+  codigo_estado: string;
+  nombre: string | null;
+};
+
+export type CiudadVE = {
+  id_configuracion_ciudad: number;
+  nombre_ciudad: string | null;
+  codigo_estado: string;
+  cod_ciudad: string | null;
+};
+
+const ESTADOS_VENEZUELA = `
+  query EstadosVenezuela {
+    estadosVenezuela {
+      codigo_estado
+      nombre
+    }
+  }
+`;
+
+const CIUDADES_POR_ESTADO = `
+  query CiudadesPorEstado($codigo_estado: String!) {
+    ciudadesPorEstado(codigo_estado: $codigo_estado) {
+      id_configuracion_ciudad
+      nombre_ciudad
+      codigo_estado
+      cod_ciudad
+    }
+  }
+`;
+
+/**
+ * Lista los estados de Venezuela (para el select de Estado).
+ * Devuelve [{ codigo_estado, nombre }] ordenado por nombre.
+ */
+export async function obtenerEstadosVenezuela(): Promise<EstadoVE[]> {
+  const data = await graphqlRequest<{ estadosVenezuela: EstadoVE[] }>(
+    ESTADOS_VENEZUELA,
+  );
+  return data?.estadosVenezuela ?? [];
+}
+
+/**
+ * Lista las ciudades de un estado (para el select dependiente de Ciudad).
+ * Devuelve [{ id, nombre_ciudad, codigo_estado, cod_ciudad }].
+ */
+export async function obtenerCiudadesPorEstado(
+  codigoEstado: string,
+): Promise<CiudadVE[]> {
+  const data = await graphqlRequest<{ ciudadesPorEstado: CiudadVE[] }>(
+    CIUDADES_POR_ESTADO,
+    { codigo_estado: codigoEstado },
+  );
+  return data?.ciudadesPorEstado ?? [];
+}
+
 export type RegistroMultidbFormValues = {
   codigo: string;          // = RIF fiscal (se llena automáticamente)
   nombre_empresa: string;

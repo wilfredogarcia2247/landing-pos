@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -35,10 +36,21 @@ import {
 import {
   registrarMaestroCliente,
   verificarClienteMultidb,
+  obtenerEstadosVenezuela,
+  obtenerCiudadesPorEstado,
   type RegistroMultidbFormValues,
   type RegistroMultidbResult,
   type VerificacionClienteResult,
+  type EstadoVE,
+  type CiudadVE,
 } from "@/lib/registro-multidb";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface RegistroMultidbFormProps {
   isOpen: boolean;
@@ -99,6 +111,11 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
   const [verificando, setVerificando] = useState(false);
   // Wizard: 1 = Empresa (RIF + datos), 2 = Administrador
   const [paso, setPaso] = useState(1);
+  // Selects dependientes Estado → Ciudad (muestra nombre, guarda código)
+  const [estados, setEstados] = useState<EstadoVE[]>([]);
+  const [ciudades, setCiudades] = useState<CiudadVE[]>([]);
+  const [cargandoEstados, setCargandoEstados] = useState(false);
+  const [cargandoCiudades, setCargandoCiudades] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(registroMultidbSchema),
     defaultValues,
@@ -111,7 +128,52 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     setResultado(null);
     setVerificacion(null);
     setPaso(1);
+    setCiudades([]);
   }, [form, isOpen]);
+
+  // Cargar los estados de Venezuela al abrir el formulario
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelado = false;
+    setCargandoEstados(true);
+    obtenerEstadosVenezuela()
+      .then((lista) => {
+        if (!cancelado) setEstados(lista);
+      })
+      .catch(() => {
+        if (!cancelado) setEstados([]);
+      })
+      .finally(() => {
+        if (!cancelado) setCargandoEstados(false);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [isOpen]);
+
+  // Al cambiar el estado, cargar sus ciudades (select dependiente)
+  const estadoSeleccionado = form.watch("estado");
+  useEffect(() => {
+    if (!estadoSeleccionado) {
+      setCiudades([]);
+      return;
+    }
+    let cancelado = false;
+    setCargandoCiudades(true);
+    obtenerCiudadesPorEstado(estadoSeleccionado)
+      .then((lista) => {
+        if (!cancelado) setCiudades(lista);
+      })
+      .catch(() => {
+        if (!cancelado) setCiudades([]);
+      })
+      .finally(() => {
+        if (!cancelado) setCargandoCiudades(false);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [estadoSeleccionado]);
 
   // Verificación en vivo contra AMBAS conexiones: se dispara cuando
   // RIF + correo cumplen formato (el código ES el RIF, se llena solo).
@@ -555,13 +617,55 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                       />
                       <FormField
                         control={form.control}
+                        name="direccion_empresa"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Dirección</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Av. Principal, Edif. X, Piso 2, Sector Centro..."
+                                autoComplete="street-address"
+                                rows={3}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
                         name="estado"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Estado</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Zulia" {...field} />
-                            </FormControl>
+                            <Select
+                              onValueChange={(valor) => {
+                                field.onChange(valor);
+                                // Al cambiar el estado, limpiar la ciudad
+                                form.setValue("ciudad", "");
+                              }}
+                              value={field.value || undefined}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={
+                                      cargandoEstados
+                                        ? "Cargando estados..."
+                                        : "Selecciona un estado"
+                                    }
+                                  />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {estados.map((e) => (
+                                  <SelectItem key={e.codigo_estado} value={e.codigo_estado}>
+                                    {e.nombre ?? e.codigo_estado}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -572,22 +676,35 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Ciudad</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Maracaibo" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="direccion_empresa"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Dirección</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Av. Principal, Edif. X" autoComplete="street-address" {...field} />
-                            </FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || undefined}
+                              disabled={!estadoSeleccionado || cargandoCiudades}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={
+                                      !estadoSeleccionado
+                                        ? "Primero selecciona un estado"
+                                        : cargandoCiudades
+                                          ? "Cargando ciudades..."
+                                          : "Selecciona una ciudad"
+                                    }
+                                  />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {ciudades.map((c) => (
+                                  <SelectItem
+                                    key={c.id_configuracion_ciudad}
+                                    value={c.cod_ciudad || c.nombre_ciudad || ""}
+                                  >
+                                    {c.nombre_ciudad ?? c.cod_ciudad}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
