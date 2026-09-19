@@ -27,7 +27,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -111,6 +110,8 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
   const [verificando, setVerificando] = useState(false);
   // Wizard: 1 = Empresa (RIF + datos), 2 = Administrador
   const [paso, setPaso] = useState(1);
+  // Código de país del teléfono (con bandera emoji nativa)
+  const [codigoPais, setCodigoPais] = useState("+58"); // Venezuela por defecto
   // Selects dependientes Estado → Ciudad (muestra nombre, guarda código)
   const [estados, setEstados] = useState<EstadoVE[]>([]);
   const [ciudades, setCiudades] = useState<CiudadVE[]>([]);
@@ -477,24 +478,58 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input
-                              placeholder="J123456789"
-                              autoComplete="off"
-                              className={`uppercase h-11 text-base font-semibold tracking-wide ${
-                                campoConError("rif") ? estiloCampoConflicto : ""
-                              }`}
-                              {...field}
-                              onChange={(e) => {
-                                const valor = e.target.value.toUpperCase();
-                                field.onChange(valor);
-                                // El código de empresa ES el RIF (sincronizado)
-                                form.setValue("codigo", valor);
-                              }}
-                            />
+                            <div className="flex gap-2">
+                              {/* Tipo de documento: muestra nombre en el dropdown,
+                                  solo la sigla al seleccionar */}
+                              <Select
+                                onValueChange={(tipo) => {
+                                  // Reconstruir el RIF completo con el nuevo tipo
+                                  const digitos = (field.value || "").replace(/^[JGVPE]/, "");
+                                  const nuevo = `${tipo}${digitos}`;
+                                  field.onChange(nuevo);
+                                  form.setValue("codigo", nuevo);
+                                }}
+                                value={(field.value || "J").charAt(0)}
+                              >
+                                <SelectTrigger className="w-[72px] h-11 font-semibold text-base">
+                                  {/* Cerrado: muestra la sigla real (no placeholder "...") */}
+                                  <span className="font-bold">{(field.value || "J").charAt(0)}</span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="J">
+                                    <span className="font-bold">J</span> — Jurídico
+                                  </SelectItem>
+                                  <SelectItem value="V">
+                                    <span className="font-bold">V</span> — Venezolano
+                                  </SelectItem>
+                                  <SelectItem value="E">
+                                    <span className="font-bold">E</span> — Extranjero
+                                  </SelectItem>
+                                  <SelectItem value="G">
+                                    <span className="font-bold">G</span> — Gubernamental
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {/* Número del documento */}
+                              <Input
+                                inputMode="numeric"
+                                placeholder="123456789"
+                                autoComplete="off"
+                                className={`flex-1 h-11 text-base font-semibold tracking-wide ${
+                                  campoConError("rif") ? estiloCampoConflicto : ""
+                                }`}
+                                value={(field.value || "").replace(/^[JGVPE]/, "")}
+                                onChange={(e) => {
+                                  const tipo = (field.value || "J").charAt(0);
+                                  const digitos = e.target.value.replace(/\D/g, "").slice(0, 9);
+                                  const nuevo = `${tipo}${digitos}`;
+                                  field.onChange(nuevo);
+                                  // El código de empresa ES el RIF (sincronizado)
+                                  form.setValue("codigo", nuevo);
+                                }}
+                              />
+                            </div>
                           </FormControl>
-                          <FormDescription className="text-xs">
-                            Identifica tu empresa y tu base de datos. Verificación en tiempo real.
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -609,7 +644,74 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                               Teléfono <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
-                              <Input type="tel" placeholder="+58 424 1234567" autoComplete="tel" {...field} />
+                              <div className="flex gap-2">
+                                {/* Código de país: nombre completo en el dropdown,
+                                    bandera + código al seleccionar */}
+                                <Select
+                                  onValueChange={(codigo) => setCodigoPais(codigo)}
+                                  value={codigoPais}
+                                >
+                                  {/* Compacto (solo bandera + código) para dejarle
+                                      el mayor espacio posible al número */}
+                                  <SelectTrigger className="w-[86px] h-11 shrink-0 px-2">
+                                    {/* Cerrado: muestra bandera grande + código real (no placeholder "...") */}
+                                    <span className="text-xl leading-none">
+                                      {codigoPais === "+58" ? "🇻🇪" : codigoPais === "+57" ? "🇨🇴" : codigoPais === "+1" ? "🇺🇸" : codigoPais === "+34" ? "🇪🇸" : codigoPais === "+52" ? "🇲🇽" : codigoPais === "+51" ? "🇵🇪" : codigoPais === "+56" ? "🇨🇱" : codigoPais === "+593" ? "🇪🇨" : codigoPais === "+55" ? "🇧🇷" : "🇺🇾"}
+                                    </span>
+                                    <span className="font-semibold text-sm">{codigoPais}</span>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="+58">
+                                      <span className="text-xl leading-none">🇻🇪</span> Venezuela (+58)
+                                    </SelectItem>
+                                    <SelectItem value="+57">
+                                      <span className="text-xl leading-none">🇨🇴</span> Colombia (+57)
+                                    </SelectItem>
+                                    <SelectItem value="+1">
+                                      <span className="text-xl leading-none">🇺🇸</span> Estados Unidos (+1)
+                                    </SelectItem>
+                                    <SelectItem value="+34">
+                                      <span className="text-xl leading-none">🇪🇸</span> España (+34)
+                                    </SelectItem>
+                                    <SelectItem value="+52">
+                                      <span className="text-xl leading-none">🇲🇽</span> México (+52)
+                                    </SelectItem>
+                                    <SelectItem value="+51">
+                                      <span className="text-xl leading-none">🇵🇪</span> Perú (+51)
+                                    </SelectItem>
+                                    <SelectItem value="+56">
+                                      <span className="text-xl leading-none">🇨🇱</span> Chile (+56)
+                                    </SelectItem>
+                                    <SelectItem value="+593">
+                                      <span className="text-xl leading-none">🇪🇨</span> Ecuador (+593)
+                                    </SelectItem>
+                                    <SelectItem value="+55">
+                                      <span className="text-xl leading-none">🇧🇷</span> Brasil (+55)
+                                    </SelectItem>
+                                    <SelectItem value="+598">
+                                      <span className="text-xl leading-none">🇺🇾</span> Uruguay (+598)
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                {/* Número local: solo dígitos, se concatena con el código.
+                                    IMPORTANTE: se quita SOLO el prefijo codigoPais (no un regex
+                                    greedy \d+, que se comía también los dígitos tecleados y por
+                                    eso el campo parecía no aceptar escritura). */}
+                                <Input
+                                  type="tel"
+                                  inputMode="numeric"
+                                  placeholder="412 1234567"
+                                  autoComplete="tel-national"
+                                  className="flex-1 min-w-0 h-11 text-base font-semibold tracking-wide"
+                                  value={(field.value || "").startsWith(codigoPais)
+                                    ? (field.value || "").slice(codigoPais.length)
+                                    : ""}
+                                  onChange={(e) => {
+                                    const digitos = e.target.value.replace(/\D/g, "").slice(0, 12);
+                                    field.onChange(`${codigoPais}${digitos}`);
+                                  }}
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
