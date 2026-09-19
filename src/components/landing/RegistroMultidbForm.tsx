@@ -11,6 +11,10 @@ import {
   Database,
   IdCard,
   Loader2,
+  Mail,
+  MapPin,
+  Phone,
+  Store,
   XCircle,
 } from "lucide-react";
 import {
@@ -44,33 +48,65 @@ interface RegistroMultidbFormProps {
   onClose: () => void;
 }
 
-const registroMultidbSchema = z.object({
-  // Código de la empresa: letras/números, 3-30 caracteres (límite de la tabla)
-  codigo: z
-    .string()
-    .trim()
-    .min(3, "El código debe tener al menos 3 caracteres")
-    .max(30, "El código no puede superar 30 caracteres")
-    .regex(/^[a-zA-Z0-9_-]+$/, "Solo letras, números, guion y guion bajo"),
-  nombre_empresa: z
-    .string()
-    .trim()
-    .min(3, "Ingresa el nombre de tu empresa")
-    .max(150, "El nombre no puede superar 150 caracteres"),
-  // RIF fiscal del cliente: letra inicial + 8-9 dígitos (ej. J123456789)
-  rif: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .min(9, "Ingresa un RIF válido (ej. J123456789)")
-    .max(12, "El RIF no puede superar 12 caracteres")
-    .regex(/^[JGVPE]-?\d{8,9}-?\d?$/, "Formato de RIF inválido (ej. J123456789)"),
-});
+// ------------------------------------------
+// Validaciones (réplica de los mensajes del preregistro PHP)
+// ------------------------------------------
+const registroMultidbSchema = z
+  .object({
+    // Empresa
+    codigo: z
+      .string()
+      .trim()
+      .min(3, "El código debe tener al menos 3 caracteres")
+      .max(30, "El código no puede superar 30 caracteres")
+      .regex(/^[a-zA-Z0-9_-]+$/, "Solo letras, números, guion y guion bajo"),
+    nombre_empresa: z.string().trim().min(1, "Falta el nombre de la empresa").max(150),
+    rif: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .min(1, "El rif es necesario")
+      .regex(/^[JGVPE]-?\d{8,9}-?\d?$/, "Formato de RIF inválido (ej. J123456789)"),
+    telefono_empresa: z.string().trim().min(1, "El telefono principal de la empresa es necesario"),
+    celular_empresa: z.string().trim().optional().default(""),
+    direccion_empresa: z.string().trim().optional().default(""),
+    estado: z.string().trim().optional().default(""),
+    ciudad: z.string().trim().optional().default(""),
+    // Sucursal principal
+    nombre_sucursal: z.string().trim().min(1, "El nombre de la sucursal es necesario"),
+    direccion_sucursal: z.string().trim().optional().default(""),
+    telefono_sucursal: z.string().trim().min(1, "El telefono de la sucursal es necesario"),
+    // Usuario administrador
+    nombre_usuario: z.string().trim().min(1, "El nombre del administrador es necesario"),
+    correo_admin: z.string().trim().toLowerCase().email("El correo del administrador es necesario"),
+    contrasena: z.string().min(1, "Necesita una contraseña para el registro"),
+    repetir_contrasena: z.string().min(1, "Repita la contraseña"),
+    telefono_usuario: z.string().trim().min(1, "El telefono del administrador es necesario"),
+  })
+  .refine((data) => data.contrasena === data.repetir_contrasena, {
+    message: "Las contraseñas no coinciden. Por favor, verifíquelas.",
+    path: ["repetir_contrasena"],
+  });
 
-const defaultValues: RegistroMultidbFormValues = {
+type FormValues = RegistroMultidbFormValues & { repetir_contrasena: string };
+
+const defaultValues: FormValues = {
   codigo: "",
   nombre_empresa: "",
   rif: "",
+  correo_admin: "",
+  contrasena: "",
+  nombre_usuario: "",
+  telefono_usuario: "",
+  telefono_empresa: "",
+  celular_empresa: "",
+  direccion_empresa: "",
+  estado: "",
+  ciudad: "",
+  nombre_sucursal: "",
+  direccion_sucursal: "",
+  telefono_sucursal: "",
+  repetir_contrasena: "",
 };
 
 const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
@@ -90,24 +126,26 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     setVerificacion(null);
   }, [form, isOpen]);
 
-  // Verificación en vivo contra AMBAS conexiones al salir de los campos.
-  // El backend valida: código en maestro + RIF en clientes_datos (icarosoft)
-  // + disponibilidad de conexiones. Solo consulta con ambos datos completos.
+  // Verificación en vivo contra AMBAS conexiones: se dispara cuando
+  // código + RIF + correo cumplen formato (los 3 datos que el backend
+  // necesita para validar duplicados en maestro y en Icarosoft).
   const codigoActual = form.watch("codigo");
   const rifActual = form.watch("rif");
+  const correoActual = form.watch("correo_admin");
   useEffect(() => {
     const codigo = (codigoActual || "").trim();
     const rif = (rifActual || "").trim().toUpperCase();
-    // Solo verificar cuando ambos campos cumplen el formato mínimo
+    const correo = (correoActual || "").trim();
     const codigoOk = codigo.length >= 3 && /^[a-zA-Z0-9_-]+$/.test(codigo);
     const rifOk = /^[JGVPE]-?\d{8,9}-?\d?$/.test(rif);
-    if (!codigoOk || !rifOk) {
+    const correoOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+    if (!codigoOk || !rifOk || !correoOk) {
       setVerificacion(null);
       return;
     }
     let cancelado = false;
     setVerificando(true);
-    verificarClienteMultidb(codigo, rif)
+    verificarClienteMultidb(codigo, rif, correo)
       .then((res) => {
         if (!cancelado) setVerificacion(res);
       })
@@ -120,12 +158,16 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     return () => {
       cancelado = true;
     };
-  }, [codigoActual, rifActual]);
+  }, [codigoActual, rifActual, correoActual]);
 
   const onSubmit = async (values: FormValues) => {
     // Re-verificar justo antes de enviar (evita carrera con otro registro)
     try {
-      const verif = await verificarClienteMultidb(values.codigo.trim(), values.rif.trim());
+      const verif = await verificarClienteMultidb(
+        values.codigo.trim(),
+        values.rif.trim(),
+        values.correo_admin.trim(),
+      );
       if (!verif.puede_registrar) {
         setVerificacion(verif);
         toast.error(verif.mensajes[0] || "No se puede registrar con esos datos");
@@ -135,7 +177,8 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
       // Si la verificación falla, dejamos que el backend valide al registrar
     }
     try {
-      const result = await registrarMaestroCliente(values);
+      const { repetir_contrasena: _omit, ...payload } = values;
+      const result = await registrarMaestroCliente(payload);
       setResultado(result);
       toast.success("¡Empresa registrada y base de datos creada!");
     } catch (error) {
@@ -153,13 +196,14 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading font-bold text-center">
             Registro multidb
           </DialogTitle>
           <DialogDescription className="text-center">
-            Registra tu empresa y genera automáticamente tu base de datos
+            Registra tu empresa, tu sucursal principal y tu administrador.
+            La base de datos dedicada se crea automáticamente.
             dedicada en la nube.
           </DialogDescription>
         </DialogHeader>
@@ -322,32 +366,299 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                 </div>
               )}
 
-              <FormField
-                control={form.control}
-                name="nombre_empresa"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      Nombre de la empresa <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Mi Empresa C.A."
-                        autoComplete="organization"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* ============ EMPRESA ============ */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Building2 className="h-4 w-4" /> Empresa
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="nombre_empresa"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nombre de la empresa <span className="text-destructive">*</span></FormLabel>
+                        <FormControl>
+                          <Input placeholder="Mi Empresa C.A." autoComplete="organization" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="rif"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <IdCard className="h-4 w-4" />
+                          RIF fiscal <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="J123456789"
+                            autoComplete="off"
+                            className="uppercase"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="codigo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Código de empresa <span className="text-destructive">*</span></FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="mi-empresa"
+                            autoComplete="off"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value.toLowerCase())}
+                          />
+                        </FormControl>
+                        <FormDescription>Identificador único (3-30 caracteres).</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="telefono_empresa"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Teléfono de la empresa <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="+58 261 1234567" autoComplete="tel" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="celular_empresa"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Teléfono opcional
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="+58 424 1234567" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="direccion_empresa"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Dirección de la empresa
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Av. Principal, Edif. X" autoComplete="street-address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="estado"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Estado
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Zulia" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="ciudad"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Ciudad
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Maracaibo" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* ============ SUCURSAL PRINCIPAL ============ */}
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Store className="h-4 w-4" /> Sucursal principal
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="nombre_sucursal"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nombre de sucursal <span className="text-destructive">*</span></FormLabel>
+                        <FormControl>
+                          <Input placeholder="Sucursal Principal" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Si lo dejas vacío se genera automáticamente con el RIF.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="telefono_sucursal"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Teléfono sucursal <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="+58 261 7654321" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="direccion_sucursal"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Dirección de la sucursal
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Av. Principal, Sector Centro" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* ============ USUARIO ADMINISTRADOR ============ */}
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Mail className="h-4 w-4" /> Administrador
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="nombre_usuario"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Nombre del administrador <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Juan Pérez" autoComplete="name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="correo_admin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          Correo (login) <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="admin@empresa.com" autoComplete="email" {...field} />
+                        </FormControl>
+                        <FormDescription>Será su usuario de acceso al sistema.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="contrasena"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contraseña <span className="text-destructive">*</span></FormLabel>
+                        <FormControl>
+                          <Input type="password" autoComplete="new-password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="repetir_contrasena"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Repetir contraseña <span className="text-destructive">*</span></FormLabel>
+                        <FormControl>
+                          <Input type="password" autoComplete="new-password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="telefono_usuario"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Teléfono del administrador <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="+58 424 7654321" autoComplete="tel" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
               <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground flex items-start gap-2">
                 <Database className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>
-                  Al confirmar se creará automáticamente una base de datos
-                  dedicada para tu empresa en el servidor con espacio disponible.
+                  Al confirmar se creará tu empresa, tu sucursal principal, tu
+                  usuario administrador y una base de datos dedicada en el
+                  servidor con espacio disponible.
                 </span>
               </div>
 

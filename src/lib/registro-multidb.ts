@@ -10,6 +10,18 @@ export type RegistroMultidbFormValues = {
   codigo: string;
   nombre_empresa: string;
   rif: string;
+  correo_admin: string;
+  contrasena: string;
+  nombre_usuario: string;
+  telefono_usuario: string;
+  telefono_empresa: string;
+  celular_empresa: string;
+  direccion_empresa: string;
+  estado: string;
+  ciudad: string;
+  nombre_sucursal: string;
+  direccion_sucursal: string;
+  telefono_sucursal: string;
 };
 
 export type RegistroMultidbResult = {
@@ -20,6 +32,9 @@ export type RegistroMultidbResult = {
   id_base_datos: number | null;
   id_empresa_base: number | null;
   id_empresa_conexion: number | null;
+  id_cliente_icarosoft: number | null;
+  id_servicio: number | null;
+  login_admin: string | null;
   host: string | null;
   nombre_base: string | null;
 };
@@ -31,6 +46,7 @@ export type VerificacionClienteResult = {
   existe_maestro: boolean;
   existe_icarosoft: boolean;
   id_cliente_icarosoft: number | null;
+  conflictos: string[];
   conexion_disponible: {
     id_conexion: number;
     host: string;
@@ -50,8 +66,40 @@ type VerificarClienteResponse = {
 };
 
 const REGISTRAR_MAESTRO_CLIENTE = `
-  mutation RegistrarMaestroCliente($codigo: String!, $nombre_empresa: String!, $rif: String!) {
-    registrarMaestroCliente(codigo: $codigo, nombre_empresa: $nombre_empresa, rif: $rif) {
+  mutation RegistrarMaestroCliente(
+    $codigo: String!
+    $nombre_empresa: String!
+    $rif: String!
+    $correo_admin: String!
+    $contrasena: String!
+    $nombre_usuario: String
+    $telefono_usuario: String
+    $telefono_empresa: String
+    $celular_empresa: String
+    $direccion_empresa: String
+    $estado: String
+    $ciudad: String
+    $nombre_sucursal: String
+    $direccion_sucursal: String
+    $telefono_sucursal: String
+  ) {
+    registrarMaestroCliente(
+      codigo: $codigo
+      nombre_empresa: $nombre_empresa
+      rif: $rif
+      correo_admin: $correo_admin
+      contrasena: $contrasena
+      nombre_usuario: $nombre_usuario
+      telefono_usuario: $telefono_usuario
+      telefono_empresa: $telefono_empresa
+      celular_empresa: $celular_empresa
+      direccion_empresa: $direccion_empresa
+      estado: $estado
+      ciudad: $ciudad
+      nombre_sucursal: $nombre_sucursal
+      direccion_sucursal: $direccion_sucursal
+      telefono_sucursal: $telefono_sucursal
+    ) {
       status
       content
       id_empresa
@@ -59,6 +107,9 @@ const REGISTRAR_MAESTRO_CLIENTE = `
       id_base_datos
       id_empresa_base
       id_empresa_conexion
+      id_cliente_icarosoft
+      id_servicio
+      login_admin
       host
       nombre_base
     }
@@ -66,13 +117,14 @@ const REGISTRAR_MAESTRO_CLIENTE = `
 `;
 
 const VERIFICAR_CLIENTE = `
-  query VerificarCliente($codigo: String!, $rif: String) {
-    maestro_verificar_cliente(codigo: $codigo, rif: $rif) {
+  query VerificarCliente($codigo: String!, $rif: String, $correo_admin: String) {
+    maestro_verificar_cliente(codigo: $codigo, rif: $rif, correo_admin: $correo_admin) {
       codigo
       rif
       existe_maestro
       existe_icarosoft
       id_cliente_icarosoft
+      conflictos
       conexion_disponible {
         id_conexion
         host
@@ -94,10 +146,15 @@ const VERIFICAR_CLIENTE = `
 export async function verificarClienteMultidb(
   codigo: string,
   rif?: string,
+  correoAdmin?: string,
 ): Promise<VerificacionClienteResult> {
   const data = await graphqlRequest<VerificarClienteResponse>(
     VERIFICAR_CLIENTE,
-    { codigo: codigo.trim(), rif: rif?.trim() || null },
+    {
+      codigo: codigo.trim(),
+      rif: rif?.trim() || null,
+      correo_admin: correoAdmin?.trim() || null,
+    },
   );
   return data?.maestro_verificar_cliente;
 }
@@ -115,7 +172,19 @@ export async function registrarMaestroCliente(
     {
       codigo: values.codigo.trim(),
       nombre_empresa: values.nombre_empresa.trim(),
-      rif: values.rif.trim(),
+      rif: values.rif.trim().toUpperCase(),
+      correo_admin: values.correo_admin.trim().toLowerCase(),
+      contrasena: values.contrasena,
+      nombre_usuario: values.nombre_usuario?.trim() || null,
+      telefono_usuario: values.telefono_usuario?.trim() || null,
+      telefono_empresa: values.telefono_empresa?.trim() || null,
+      celular_empresa: values.celular_empresa?.trim() || null,
+      direccion_empresa: values.direccion_empresa?.trim() || null,
+      estado: values.estado?.trim() || null,
+      ciudad: values.ciudad?.trim() || null,
+      nombre_sucursal: values.nombre_sucursal?.trim() || null,
+      direccion_sucursal: values.direccion_sucursal?.trim() || null,
+      telefono_sucursal: values.telefono_sucursal?.trim() || null,
     },
   );
 
