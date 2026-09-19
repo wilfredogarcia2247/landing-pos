@@ -42,6 +42,7 @@ export type VerificacionClienteResult = {
   existe_icarosoft: boolean;
   id_cliente_icarosoft: number | null;
   conflictos: string[];
+  campos: string[]; // nombres de campo con conflicto para marcarlos en la UI
   conexion_disponible: {
     id_conexion: number;
     host: string;
@@ -120,6 +121,7 @@ const VERIFICAR_CLIENTE = `
       existe_icarosoft
       id_cliente_icarosoft
       conflictos
+      campos
       conexion_disponible {
         id_conexion
         host

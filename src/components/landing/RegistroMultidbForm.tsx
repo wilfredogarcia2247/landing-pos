@@ -189,6 +189,31 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     verificacion && !verificacion.puede_registrar,
   );
 
+  // Campos con conflicto (del backend): se marcan en rojo y se hace focus
+  // en el primero para que el usuario sepa exactamente qué corregir.
+  const camposConflicto: string[] = verificacion?.campos ?? [];
+  const campoConError = (nombre: string) => camposConflicto.includes(nombre);
+  const estiloCampoConflicto =
+    "border-destructive ring-1 ring-destructive/40 focus-visible:ring-destructive";
+
+  // Al llegar una verificación con conflictos, enfocar el primer campo afectado
+  useEffect(() => {
+    if (!verificacion || verificacion.puede_registrar) return;
+    const orden = ["rif", "nombre_empresa", "correo_admin"];
+    const primero = orden.find((c) => verificacion.campos.includes(c));
+    if (primero) {
+      // Pequeño delay para que el panel de verificación ya esté pintado
+      const t = setTimeout(() => {
+        const el = document.querySelector<HTMLInputElement>(
+          `[name="${primero}"]:not([type="hidden"])`,
+        );
+        el?.focus();
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
+      return () => clearTimeout(t);
+    }
+  }, [verificacion]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
@@ -297,7 +322,9 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                             <Input
                               placeholder="J123456789"
                               autoComplete="off"
-                              className="uppercase h-11 text-base font-semibold tracking-wide"
+                              className={`uppercase h-11 text-base font-semibold tracking-wide ${
+                                campoConError("rif") ? estiloCampoConflicto : ""
+                              }`}
                               {...field}
                               onChange={(e) => {
                                 const valor = e.target.value.toUpperCase();
@@ -373,9 +400,12 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                           </li>
                         </ul>
                         {verificacion.mensajes.length > 0 && (
-                          <ul className="space-y-1 text-xs text-destructive">
+                          <ul className="space-y-1 text-xs">
                             {verificacion.mensajes.map((m) => (
-                              <li key={m}>• {m}</li>
+                              <li key={m} className="flex items-start gap-1.5 text-destructive font-medium">
+                                <XCircle className="h-3 w-3 mt-0.5 shrink-0" />
+                                <span>{m}</span>
+                              </li>
                             ))}
                           </ul>
                         )}
@@ -393,9 +423,19 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                         name="nombre_empresa"
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
-                            <FormLabel>Nombre de la empresa <span className="text-destructive">*</span></FormLabel>
+                            <FormLabel>
+                              Nombre de la empresa <span className="text-destructive">*</span>
+                              {campoConError("nombre_empresa") && (
+                                <span className="ml-1 text-xs font-normal text-destructive">— ya existe, cambia el nombre</span>
+                              )}
+                            </FormLabel>
                             <FormControl>
-                              <Input placeholder="Mi Empresa C.A." autoComplete="organization" {...field} />
+                              <Input
+                                placeholder="Mi Empresa C.A."
+                                autoComplete="organization"
+                                className={campoConError("nombre_empresa") ? estiloCampoConflicto : ""}
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -502,9 +542,18 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                             <FormLabel className="flex items-center gap-2">
                               <Mail className="h-4 w-4" />
                               Correo (login) <span className="text-destructive">*</span>
+                              {campoConError("correo_admin") && (
+                                <span className="text-xs font-normal text-destructive">— no disponible</span>
+                              )}
                             </FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="admin@empresa.com" autoComplete="email" {...field} />
+                              <Input
+                                type="email"
+                                placeholder="admin@empresa.com"
+                                autoComplete="email"
+                                className={campoConError("correo_admin") ? estiloCampoConflicto : ""}
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
