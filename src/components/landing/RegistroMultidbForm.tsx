@@ -50,16 +50,13 @@ interface RegistroMultidbFormProps {
 
 // ------------------------------------------
 // Validaciones (réplica de los mensajes del preregistro PHP)
+// SIMPLIFICADO: el código de empresa ES el RIF fiscal (se llena
+// automáticamente) y hay UN solo teléfono para todo.
 // ------------------------------------------
 const registroMultidbSchema = z
   .object({
     // Empresa
-    codigo: z
-      .string()
-      .trim()
-      .min(3, "El código debe tener al menos 3 caracteres")
-      .max(30, "El código no puede superar 30 caracteres")
-      .regex(/^[a-zA-Z0-9_-]+$/, "Solo letras, números, guion y guion bajo"),
+    codigo: z.string(), // se llena automáticamente con el RIF (oculto)
     nombre_empresa: z.string().trim().min(1, "Falta el nombre de la empresa").max(150),
     rif: z
       .string()
@@ -67,21 +64,18 @@ const registroMultidbSchema = z
       .toUpperCase()
       .min(1, "El rif es necesario")
       .regex(/^[JGVPE]-?\d{8,9}-?\d?$/, "Formato de RIF inválido (ej. J123456789)"),
-    telefono_empresa: z.string().trim().min(1, "El telefono principal de la empresa es necesario"),
-    celular_empresa: z.string().trim().optional().default(""),
+    telefono: z.string().trim().min(1, "El telefono principal de la empresa es necesario"),
     direccion_empresa: z.string().trim().optional().default(""),
     estado: z.string().trim().optional().default(""),
     ciudad: z.string().trim().optional().default(""),
     // Sucursal principal
     nombre_sucursal: z.string().trim().min(1, "El nombre de la sucursal es necesario"),
     direccion_sucursal: z.string().trim().optional().default(""),
-    telefono_sucursal: z.string().trim().min(1, "El telefono de la sucursal es necesario"),
     // Usuario administrador
     nombre_usuario: z.string().trim().min(1, "El nombre del administrador es necesario"),
     correo_admin: z.string().trim().toLowerCase().email("El correo del administrador es necesario"),
     contrasena: z.string().min(1, "Necesita una contraseña para el registro"),
     repetir_contrasena: z.string().min(1, "Repita la contraseña"),
-    telefono_usuario: z.string().trim().min(1, "El telefono del administrador es necesario"),
   })
   .refine((data) => data.contrasena === data.repetir_contrasena, {
     message: "Las contraseñas no coinciden. Por favor, verifíquelas.",
@@ -97,15 +91,12 @@ const defaultValues: FormValues = {
   correo_admin: "",
   contrasena: "",
   nombre_usuario: "",
-  telefono_usuario: "",
-  telefono_empresa: "",
-  celular_empresa: "",
+  telefono: "",
   direccion_empresa: "",
   estado: "",
   ciudad: "",
   nombre_sucursal: "",
   direccion_sucursal: "",
-  telefono_sucursal: "",
   repetir_contrasena: "",
 };
 
@@ -127,25 +118,21 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
   }, [form, isOpen]);
 
   // Verificación en vivo contra AMBAS conexiones: se dispara cuando
-  // código + RIF + correo cumplen formato (los 3 datos que el backend
-  // necesita para validar duplicados en maestro y en Icarosoft).
-  const codigoActual = form.watch("codigo");
+  // RIF + correo cumplen formato (el código ES el RIF, se llena solo).
   const rifActual = form.watch("rif");
   const correoActual = form.watch("correo_admin");
   useEffect(() => {
-    const codigo = (codigoActual || "").trim();
     const rif = (rifActual || "").trim().toUpperCase();
     const correo = (correoActual || "").trim();
-    const codigoOk = codigo.length >= 3 && /^[a-zA-Z0-9_-]+$/.test(codigo);
     const rifOk = /^[JGVPE]-?\d{8,9}-?\d?$/.test(rif);
     const correoOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
-    if (!codigoOk || !rifOk || !correoOk) {
+    if (!rifOk || !correoOk) {
       setVerificacion(null);
       return;
     }
     let cancelado = false;
     setVerificando(true);
-    verificarClienteMultidb(codigo, rif, correo)
+    verificarClienteMultidb(rif, rif, correo)
       .then((res) => {
         if (!cancelado) setVerificacion(res);
       })
@@ -158,13 +145,13 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     return () => {
       cancelado = true;
     };
-  }, [codigoActual, rifActual, correoActual]);
+  }, [rifActual, correoActual]);
 
   const onSubmit = async (values: FormValues) => {
     // Re-verificar justo antes de enviar (evita carrera con otro registro)
     try {
       const verif = await verificarClienteMultidb(
-        values.codigo.trim(),
+        values.rif.trim(),
         values.rif.trim(),
         values.correo_admin.trim(),
       );
