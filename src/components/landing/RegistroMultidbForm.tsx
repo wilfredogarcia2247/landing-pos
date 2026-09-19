@@ -6,13 +6,10 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   AlertTriangle,
-  Building2,
   CheckCircle,
-  Database,
   IdCard,
   Loader2,
   Mail,
-  MapPin,
   Phone,
   XCircle,
 } from "lucide-react";
@@ -99,6 +96,8 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
   const [resultado, setResultado] = useState<RegistroMultidbResult | null>(null);
   const [verificacion, setVerificacion] = useState<VerificacionClienteResult | null>(null);
   const [verificando, setVerificando] = useState(false);
+  // Wizard: 1 = Empresa (RIF + datos), 2 = Administrador
+  const [paso, setPaso] = useState(1);
   const form = useForm<FormValues>({
     resolver: zodResolver(registroMultidbSchema),
     defaultValues,
@@ -110,6 +109,7 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     form.reset(defaultValues);
     setResultado(null);
     setVerificacion(null);
+    setPaso(1);
   }, [form, isOpen]);
 
   // Verificación en vivo contra AMBAS conexiones: se dispara cuando
@@ -142,6 +142,18 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     };
   }, [rifActual, correoActual]);
 
+  // Avanzar al paso 2 solo si los campos del paso 1 son válidos
+  const irAPaso2 = async () => {
+    const valido = await form.trigger(["rif", "nombre_empresa", "telefono"]);
+    if (!valido) return;
+    // Si hay verificación y falló, no avanzar
+    if (verificacion && !verificacion.puede_registrar) {
+      toast.error(verificacion.mensajes[0] || "No se puede registrar con este RIF");
+      return;
+    }
+    setPaso(2);
+  };
+
   const onSubmit = async (values: FormValues) => {
     // Re-verificar justo antes de enviar (evita carrera con otro registro)
     try {
@@ -152,6 +164,7 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
       );
       if (!verif.puede_registrar) {
         setVerificacion(verif);
+        setPaso(1); // volver al paso del RIF para que vea el problema
         toast.error(verif.mensajes[0] || "No se puede registrar con esos datos");
         return;
       }
@@ -178,15 +191,13 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-heading font-bold text-center">
-            Registro multidb
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-xl font-heading font-bold text-center">
+            Crea tu empresa en ICARO POS
           </DialogTitle>
-          <DialogDescription className="text-center">
-            Registra tu empresa y tu administrador.
-            La base de datos dedicada se crea automáticamente.
-            dedicada en la nube.
+          <DialogDescription className="text-center text-sm">
+            Completa los datos y tu base de datos dedicada se crea automáticamente.
           </DialogDescription>
         </DialogHeader>
 
@@ -231,292 +242,339 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
               {/* Código de empresa: OCULTO — se llena automáticamente con el RIF */}
               <input type="hidden" {...form.register("codigo")} />
 
-              <FormField
-                control={form.control}
-                name="rif"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <IdCard className="h-4 w-4" />
-                      RIF fiscal <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="J123456789"
-                        autoComplete="off"
-                        className="uppercase"
-                        {...field}
-                        onChange={(e) => {
-                          const valor = e.target.value.toUpperCase();
-                          field.onChange(valor);
-                          // El código de empresa ES el RIF (sincronizado)
-                          form.setValue("codigo", valor);
-                        }}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Identifica tu empresa y tu base de datos. Se verifica en
-                      tiempo real contra el catálogo y los clientes existentes.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Verificación en vivo (ambas conexiones) */}
-              {verificando && (
-                <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                  Verificando disponibilidad del RIF...
-                </div>
-              )}
-
-              {!verificando && verificacion && (
-                <div
-                  className={`rounded-lg border p-3 text-sm space-y-2 ${
-                    verificacion.puede_registrar
-                      ? "border-green-500/40 bg-green-500/10"
-                      : "border-destructive/40 bg-destructive/10"
+              {/* ============ INDICADOR DE PASOS ============ */}
+              <div className="flex items-center justify-center gap-2 pb-1">
+                <button
+                  type="button"
+                  onClick={() => setPaso(1)}
+                  className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    paso === 1
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-accent"
                   }`}
                 >
-                  <div className="flex items-center gap-2 font-medium">
-                    {verificacion.puede_registrar ? (
-                      <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                  <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${paso === 1 ? "bg-primary-foreground/20" : "bg-background"}`}>1</span>
+                  Empresa
+                </button>
+                <div className={`h-px w-8 ${paso === 2 ? "bg-primary" : "bg-border"}`} />
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Permitir ir al paso 2 solo si el paso 1 es válido
+                    form.trigger(["rif", "nombre_empresa", "telefono"]).then((ok) => ok && setPaso(2));
+                  }}
+                  className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    paso === 2
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  }`}
+                >
+                  <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${paso === 2 ? "bg-primary-foreground/20" : "bg-background"}`}>2</span>
+                  Administrador
+                </button>
+              </div>
+
+              {/* ============ PASO 1: EMPRESA (RIF + datos) ============ */}
+              {paso === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-4"
+                >
+                  {/* RIF destacado dentro de la sección de empresa */}
+                  <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <IdCard className="h-4 w-4 text-primary" />
+                      <h4 className="text-sm font-semibold">RIF fiscal de tu empresa</h4>
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="rif"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              placeholder="J123456789"
+                              autoComplete="off"
+                              className="uppercase h-11 text-base font-semibold tracking-wide"
+                              {...field}
+                              onChange={(e) => {
+                                const valor = e.target.value.toUpperCase();
+                                field.onChange(valor);
+                                // El código de empresa ES el RIF (sincronizado)
+                                form.setValue("codigo", valor);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            Identifica tu empresa y tu base de datos. Verificación en tiempo real.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Verificación en vivo (ambas conexiones) */}
+                    {verificando && (
+                      <div className="rounded-lg border bg-background/60 p-2.5 text-sm text-muted-foreground flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                        Verificando disponibilidad del RIF...
+                      </div>
                     )}
-                    {verificacion.puede_registrar
-                      ? "RIF disponible para registro"
-                      : "No se puede registrar con este RIF"}
+
+                    {!verificando && verificacion && (
+                      <div
+                        className={`rounded-lg border p-2.5 text-sm space-y-1.5 ${
+                          verificacion.puede_registrar
+                            ? "border-green-500/40 bg-green-500/10"
+                            : "border-destructive/40 bg-destructive/10"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 font-medium">
+                          {verificacion.puede_registrar ? (
+                            <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                          )}
+                          {verificacion.puede_registrar
+                            ? "RIF disponible para registro"
+                            : "No se puede registrar con este RIF"}
+                        </div>
+                        <ul className="space-y-1 text-xs text-muted-foreground">
+                          <li className="flex items-center gap-1.5">
+                            {verificacion.existe_maestro ? (
+                              <XCircle className="h-3 w-3 text-destructive shrink-0" />
+                            ) : (
+                              <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
+                            )}
+                            Catálogo de empresas:{" "}
+                            {verificacion.existe_maestro ? "ya registrado" : "disponible"}
+                          </li>
+                          <li className="flex items-center gap-1.5">
+                            {verificacion.existe_icarosoft ? (
+                              <XCircle className="h-3 w-3 text-destructive shrink-0" />
+                            ) : (
+                              <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
+                            )}
+                            Clientes Icarosoft:{" "}
+                            {verificacion.existe_icarosoft ? "ya existe" : "disponible"}
+                          </li>
+                          <li className="flex items-center gap-1.5">
+                            {verificacion.conexion_disponible ? (
+                              <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
+                            ) : (
+                              <AlertTriangle className="h-3 w-3 text-amber-500 shrink-0" />
+                            )}
+                            Servidor:{" "}
+                            {verificacion.conexion_disponible
+                              ? `${verificacion.conexion_disponible.host} (${verificacion.conexion_disponible.bases_activas}/${verificacion.conexion_disponible.max_bases_datos} bases)`
+                              : "sin espacio disponible"}
+                          </li>
+                        </ul>
+                        {verificacion.mensajes.length > 0 && (
+                          <ul className="space-y-1 text-xs text-destructive">
+                            {verificacion.mensajes.map((m) => (
+                              <li key={m}>• {m}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <ul className="space-y-1 text-xs text-muted-foreground">
-                    <li className="flex items-center gap-1.5">
-                      {verificacion.existe_maestro ? (
-                        <XCircle className="h-3 w-3 text-destructive shrink-0" />
-                      ) : (
-                        <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
-                      )}
-                      Catálogo de empresas:{" "}
-                      {verificacion.existe_maestro ? "ya registrado" : "disponible"}
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      {verificacion.existe_icarosoft ? (
-                        <XCircle className="h-3 w-3 text-destructive shrink-0" />
-                      ) : (
-                        <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
-                      )}
-                      Clientes Icarosoft:{" "}
-                      {verificacion.existe_icarosoft ? "ya existe" : "disponible"}
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      {verificacion.conexion_disponible ? (
-                        <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
-                      ) : (
-                        <AlertTriangle className="h-3 w-3 text-amber-500 shrink-0" />
-                      )}
-                      Servidor:{" "}
-                      {verificacion.conexion_disponible
-                        ? `${verificacion.conexion_disponible.host} (${verificacion.conexion_disponible.bases_activas}/${verificacion.conexion_disponible.max_bases_datos} bases)`
-                        : "sin espacio disponible"}
-                    </li>
-                  </ul>
-                  {verificacion.mensajes.length > 0 && (
-                    <ul className="space-y-1 text-xs text-destructive">
-                      {verificacion.mensajes.map((m) => (
-                        <li key={m}>• {m}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+
+                  {/* Datos de la empresa */}
+                  <div className="rounded-xl border p-4 space-y-4">
+                    <h4 className="text-sm font-semibold">Datos de la empresa</h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
+                      <FormField
+                        control={form.control}
+                        name="nombre_empresa"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Nombre de la empresa <span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input placeholder="Mi Empresa C.A." autoComplete="organization" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="telefono"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <Phone className="h-4 w-4" />
+                              Teléfono <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input type="tel" placeholder="+58 424 1234567" autoComplete="tel" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="estado"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Estado</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Zulia" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="ciudad"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ciudad</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Maracaibo" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="direccion_empresa"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dirección</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Av. Principal, Edif. X" autoComplete="street-address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="hero"
+                    className="w-full h-11"
+                    onClick={irAPaso2}
+                  >
+                    Continuar
+                  </Button>
+                </motion.div>
               )}
 
-              {/* ============ EMPRESA ============ */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                  <Building2 className="h-4 w-4" /> Empresa
-                </h4>
+              {/* ============ PASO 2: ADMINISTRADOR ============ */}
+              {paso === 2 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="rounded-xl border p-4 space-y-4">
+                    <h4 className="text-sm font-semibold">Usuario administrador</h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="nombre_empresa"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nombre de la empresa <span className="text-destructive">*</span></FormLabel>
-                        <FormControl>
-                          <Input placeholder="Mi Empresa C.A." autoComplete="organization" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="telefono"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          Teléfono <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input type="tel" placeholder="+58 424 1234567" autoComplete="tel" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Se usa para la empresa, la sucursal y el administrador.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="direccion_empresa"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          Dirección de la empresa
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="Av. Principal, Edif. X" autoComplete="street-address" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="estado"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          Estado
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="Zulia" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="ciudad"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          Ciudad
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="Maracaibo" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
+                      <FormField
+                        control={form.control}
+                        name="nombre_usuario"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nombre <span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input placeholder="Juan Pérez" autoComplete="name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="correo_admin"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <Mail className="h-4 w-4" />
+                              Correo (login) <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="admin@empresa.com" autoComplete="email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="contrasena"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Contraseña <span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input type="password" autoComplete="new-password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="repetir_contrasena"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Repetir contraseña <span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input type="password" autoComplete="new-password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      El correo será su usuario de acceso al sistema.
+                    </p>
+                  </div>
 
-              {/* ============ USUARIO ADMINISTRADOR ============ */}
-              <div className="space-y-4 border-t pt-4">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                  <Mail className="h-4 w-4" /> Administrador
-                </h4>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="nombre_usuario"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4" />
-                          Nombre del administrador <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="Juan Pérez" autoComplete="name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="correo_admin"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          Correo (login) <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="admin@empresa.com" autoComplete="email" {...field} />
-                        </FormControl>
-                        <FormDescription>Será su usuario de acceso al sistema.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="contrasena"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contraseña <span className="text-destructive">*</span></FormLabel>
-                        <FormControl>
-                          <Input type="password" autoComplete="new-password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="repetir_contrasena"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Repetir contraseña <span className="text-destructive">*</span></FormLabel>
-                        <FormControl>
-                          <Input type="password" autoComplete="new-password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground flex items-start gap-2">
-                <Database className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>
-                  Al confirmar se creará tu empresa, tu usuario administrador
-                  y una base de datos dedicada en el servidor con espacio disponible.
-                </span>
-              </div>
-
-              <Button
-                type="submit"
-                variant="hero"
-                className="w-full"
-                disabled={form.formState.isSubmitting || verificando || bloqueadoPorVerificacion}
-              >
-                {form.formState.isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Creando tu base de datos...
-                  </>
-                ) : verificando ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  "Crear mi empresa y base de datos"
-                )}
-              </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 h-11"
+                      onClick={() => setPaso(1)}
+                      disabled={form.formState.isSubmitting}
+                    >
+                      Atrás
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="hero"
+                      className="flex-[2] h-11"
+                      disabled={form.formState.isSubmitting || verificando || bloqueadoPorVerificacion}
+                    >
+                      {form.formState.isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Creando tu base de datos...
+                        </>
+                      ) : verificando ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Verificando...
+                        </>
+                      ) : (
+                        "Crear mi empresa y base de datos"
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
             </form>
           </Form>
         )}
