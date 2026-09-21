@@ -2,11 +2,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import RegistrationForm from "./RegistrationForm";
+import RegistroMultidbForm from "./RegistroMultidbForm";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
+  const [isMultidbOpen, setIsMultidbOpen] = useState(false);
 
   const navItems = [
     { label: "Características", href: "#features" },
@@ -61,10 +61,8 @@ const Header = () => {
             }}>
               Iniciar Sesión
             </Button>
-            <Button variant="hero" onClick={() => {
-              console.log('Registration button clicked');
-              setIsRegistrationOpen(true);
-            }}>
+            {/* Registro único: alta de empresa + base de datos dedicada */}
+            <Button variant="hero" onClick={() => setIsMultidbOpen(true)}>
               Regístrate
             </Button>
           </div>
@@ -109,8 +107,7 @@ const Header = () => {
                   Iniciar Sesión
                 </Button>
                 <Button variant="hero" className="w-full" onClick={() => {
-                  console.log('Mobile registration button clicked');
-                  setIsRegistrationOpen(true);
+                  setIsMultidbOpen(true);
                   setIsMenuOpen(false);
                 }}>
                   Regístrate
@@ -122,10 +119,10 @@ const Header = () => {
         </AnimatePresence>
       </div>
 
-      {/* Registration Modal */}
-      <RegistrationForm 
-        isOpen={isRegistrationOpen} 
-        onClose={() => setIsRegistrationOpen(false)} 
+      {/* Registro Modal (multidb: empresa + base de datos dedicada) */}
+      <RegistroMultidbForm
+        isOpen={isMultidbOpen}
+        onClose={() => setIsMultidbOpen(false)}
       />
     </motion.header>
   );
