@@ -110,8 +110,11 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
   const [verificando, setVerificando] = useState(false);
   // Wizard: 1 = Empresa (RIF + datos), 2 = Administrador
   const [paso, setPaso] = useState(1);
-  // Código de país del teléfono (con bandera emoji nativa)
+  // Código de país del teléfono (con bandera emoji nativa).
+  // Se MUESTRA con '+' pero se GUARDA sin él: la estructura de la base
+  // de datos no necesita el símbolo (ej. se guarda 584121234567).
   const [codigoPais, setCodigoPais] = useState("+58"); // Venezuela por defecto
+  const codigoPaisSinMas = codigoPais.slice(1); // ej. "58" — valor a guardar
   // Selects dependientes Estado → Ciudad (muestra nombre, guarda código)
   const [estados, setEstados] = useState<EstadoVE[]>([]);
   const [ciudades, setCiudades] = useState<CiudadVE[]>([]);
@@ -696,19 +699,20 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                                 {/* Número local: solo dígitos, se concatena con el código.
                                     IMPORTANTE: se quita SOLO el prefijo codigoPais (no un regex
                                     greedy \d+, que se comía también los dígitos tecleados y por
-                                    eso el campo parecía no aceptar escritura). */}
+                                    eso el campo parecía no aceptar escritura).
+                                    El valor se guarda SIN el '+' (ej. 584121234567). */}
                                 <Input
                                   type="tel"
                                   inputMode="numeric"
                                   placeholder="412 1234567"
                                   autoComplete="tel-national"
                                   className="flex-1 min-w-0 h-11 text-base font-semibold tracking-wide"
-                                  value={(field.value || "").startsWith(codigoPais)
-                                    ? (field.value || "").slice(codigoPais.length)
+                                  value={(field.value || "").startsWith(codigoPaisSinMas)
+                                    ? (field.value || "").slice(codigoPaisSinMas.length)
                                     : ""}
                                   onChange={(e) => {
                                     const digitos = e.target.value.replace(/\D/g, "").slice(0, 12);
-                                    field.onChange(`${codigoPais}${digitos}`);
+                                    field.onChange(`${codigoPaisSinMas}${digitos}`);
                                   }}
                                 />
                               </div>
