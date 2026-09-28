@@ -12,6 +12,7 @@ import {
   Loader2,
   Mail,
   Phone,
+  Receipt,
   XCircle,
 } from "lucide-react";
 import {
@@ -104,14 +105,28 @@ const defaultValues: FormValues = {
   repetir_contrasena: "",
 };
 
+// Frases motivacionales mostradas durante el aprovisionamiento (constante
+// fuera del componente para no recrearla en cada render).
+const FRASES = [
+  "Preparando tu empresa para crecer... 🚀",
+  "Construyendo tu base de datos dedicada... 🏗️",
+  "Configurando tu sucursal principal... 🏪",
+  "Preparando tu sistema de facturación fiscal... 🧾",
+  "Dejando todo listo para tu primera venta... 💰",
+  "Casi listo: tu negocio en la nube se está armando... ☁️",
+];
+
 const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
   const [resultado, setResultado] = useState<RegistroMultidbResult | null>(null);
   const [verificacion, setVerificacion] = useState<VerificacionClienteResult | null>(null);
   const [verificando, setVerificando] = useState(false);
   // Wizard: 1 = Empresa (RIF + datos), 2 = Administrador
   const [paso, setPaso] = useState(1);
-  // Código de país del teléfono (con bandera emoji nativa)
+  // Código de país del teléfono (con bandera emoji nativa).
+  // Se MUESTRA con '+' pero se GUARDA sin él: la estructura de la base
+  // de datos no necesita el símbolo (ej. se guarda 584121234567).
   const [codigoPais, setCodigoPais] = useState("+58"); // Venezuela por defecto
+  const codigoPaisSinMas = codigoPais.slice(1); // ej. "58" — valor a guardar
   // Selects dependientes Estado → Ciudad (muestra nombre, guarda código)
   const [estados, setEstados] = useState<EstadoVE[]>([]);
   const [ciudades, setCiudades] = useState<CiudadVE[]>([]);
@@ -176,22 +191,25 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     };
   }, [estadoSeleccionado]);
 
-  // Verificación en vivo contra AMBAS conexiones: se dispara cuando
-  // RIF + correo cumplen formato (el código ES el RIF, se llena solo).
+  // Verificación en vivo contra AMBAS conexiones: se dispara en cuanto el
+  // RIF cumple formato (paso 1) SIN requerir el correo (que vive en el paso 2).
+  // El backend acepta correo null (usa un placeholder que nunca coincide),
+  // así el RIF se valida de inmediato en el paso 1. Cuando el correo del
+  // paso 2 ya es válido, se incluye para detectar duplicados de email.
   const rifActual = form.watch("rif");
   const correoActual = form.watch("correo_admin");
   useEffect(() => {
     const rif = (rifActual || "").trim().toUpperCase();
     const correo = (correoActual || "").trim();
     const rifOk = /^[JGVPE]-?\d{8,9}-?\d?$/.test(rif);
-    const correoOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
-    if (!rifOk || !correoOk) {
+    if (!rifOk) {
       setVerificacion(null);
       return;
     }
+    const correoOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
     let cancelado = false;
     setVerificando(true);
-    verificarClienteMultidb(rif, rif, correo)
+    verificarClienteMultidb(rif, rif, correoOk ? correo : null)
       .then((res) => {
         if (!cancelado) setVerificacion(res);
       })
@@ -206,14 +224,32 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
     };
   }, [rifActual, correoActual]);
 
-  // Avanzar al paso 2 solo si los campos del paso 1 son válidos
+  // ¿El conflicto detectado pertenece al paso 1 (RIF/catálogo/servidor)?
+  // Los conflictos de correo se corrigen en el paso 2 y NO bloquean el avance.
+  const conflictoDePaso1 = (v: VerificacionClienteResult) =>
+    v.campos.includes("rif") || v.existe_maestro || !v.conexion_disponible;
+
+  // Avanzar al paso 2 solo si los campos del paso 1 son válidos Y el RIF
+  // pasó la verificación (duplicados/capacidad). Se re-verifica al momento
+  // del clic para evitar carreras con registros simultáneos.
   const irAPaso2 = async () => {
     const valido = await form.trigger(["rif", "nombre_empresa", "telefono"]);
     if (!valido) return;
-    // Si hay verificación y falló, no avanzar
-    if (verificacion && !verificacion.puede_registrar) {
-      toast.error(verificacion.mensajes[0] || "No se puede registrar con este RIF");
-      return;
+    const rif = (form.getValues("rif") || "").trim().toUpperCase();
+    const correo = (form.getValues("correo_admin") || "").trim();
+    const correoOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+    try {
+      const verif = await verificarClienteMultidb(rif, rif, correoOk ? correo : null);
+      setVerificacion(verif);
+      // Bloquear el avance SOLO por problemas del paso 1 (RIF duplicado,
+      // catálogo, sin conexión). Si el conflicto es solo del correo, se
+      // permite avanzar: el paso 2 muestra el panel y el campo en rojo.
+      if (!verif.puede_registrar && conflictoDePaso1(verif)) {
+        toast.error(verif.mensajes[0] || "No se puede registrar con este RIF");
+        return;
+      }
+    } catch {
+      // Si la verificación falla, el backend validará al registrar
     }
     setPaso(2);
   };
@@ -228,7 +264,12 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
       );
       if (!verif.puede_registrar) {
         setVerificacion(verif);
-        setPaso(1); // volver al paso del RIF para que vea el problema
+        // Volver al paso 1 solo si el conflicto es del RIF/catálogo/servidor;
+        // si es del correo, quedarse en el paso 2 donde se corrige y el
+        // panel de conflictos muestra el detalle.
+        if (conflictoDePaso1(verif)) {
+          setPaso(1);
+        }
         toast.error(verif.mensajes[0] || "No se puede registrar con esos datos");
         return;
       }
@@ -284,15 +325,6 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
   const [fraseIdx, setFraseIdx] = useState(0);
   const registrando = form.formState.isSubmitting;
 
-  const FRASES = [
-    "Preparando tu empresa para crecer... 🚀",
-    "Construyendo tu base de datos dedicada... 🏗️",
-    "Configurando tu sucursal principal... 🏪",
-    "Preparando tu sistema de facturación fiscal... 🧾",
-    "Dejando todo listo para tu primera venta... 💰",
-    "Casi listo: tu negocio en la nube se está armando... ☁️",
-  ];
-
   useEffect(() => {
     if (!registrando) {
       setProgreso(0);
@@ -324,11 +356,25 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl font-heading font-bold text-center">
-            Crea tu empresa en ICARO POS
+            {/* Marca con logo + degradado azul→morado (colores del logo Icaro) */}
+            <span className="inline-flex items-center justify-center gap-2">
+              <img
+                src="/logo-inicio.png"
+                alt="Logo Icaro POS"
+                className="w-7 h-7 object-contain"
+              />
+              <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                Icaro POS
+              </span>
+            </span>
           </DialogTitle>
-          <DialogDescription className="text-center text-sm">
-            Completa los datos y tu base de datos dedicada se crea automáticamente.
-          </DialogDescription>
+          {/* La descripción solo se muestra antes del registro; en la pantalla
+              de éxito se omite para mantener el mensaje simple. */}
+          {!resultado && (
+            <DialogDescription className="text-center text-sm">
+              Completa los datos y tu base de datos dedicada se crea automáticamente.
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         {registrando ? (
@@ -386,38 +432,80 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
             </motion.p>
           </motion.div>
         ) : resultado ? (
+          /* ============ PANTALLA DE ÉXITO ============
+             Mensaje simple y amigable: al cliente no se le muestran
+             datos técnicos (servidor, base de datos, conexiones).
+             Al aceptar, se redirige al login del POS. */
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="py-6 text-center space-y-4"
+            className="py-8 text-center space-y-5"
           >
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500 text-white">
-              <CheckCircle className="h-8 w-8" />
+            {/* Animación cíclica de facturación: una factura con billetes
+                que "entran" a ella en bucle, aludiendo a ventas y dinero. */}
+            <div className="relative mx-auto h-24 w-24">
+              {/* Halo pulsante de fondo */}
+              <motion.div
+                className="absolute inset-0 rounded-full bg-green-500/20"
+                animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.2, 0.6] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              />
+              {/* Factura central */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <motion.div
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-500 text-white shadow-lg shadow-green-500/30"
+                  animate={{ scale: [1, 1.06, 1] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                >
+                  <Receipt className="h-8 w-8" />
+                </motion.div>
+              </div>
+              {/* Billetes que entran en bucle (izquierda y derecha) */}
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={`izq-${i}`}
+                  className="absolute top-1/2 left-0 h-3 w-6 -translate-y-1/2 rounded-sm bg-amber-400 shadow-sm"
+                  animate={{ x: [0, 28], opacity: [0, 1, 0], scale: [0.7, 1, 0.7] }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 2,
+                    delay: i * 0.65,
+                    ease: "easeIn",
+                  }}
+                />
+              ))}
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={`der-${i}`}
+                  className="absolute top-1/2 right-0 h-3 w-6 -translate-y-1/2 rounded-sm bg-amber-400 shadow-sm"
+                  animate={{ x: [0, -28], opacity: [0, 1, 0], scale: [0.7, 1, 0.7] }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 2,
+                    delay: i * 0.65 + 0.3,
+                    ease: "easeIn",
+                  }}
+                />
+              ))}
             </div>
-            <h3 className="text-xl font-heading font-bold">¡Todo listo!</h3>
-            <p className="text-muted-foreground">
-              Tu empresa quedó registrada y tu base de datos ya fue creada.
-            </p>
-            <div className="rounded-lg border bg-muted/40 p-4 text-left space-y-2 text-sm">
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Empresa</span>
-                <span className="font-medium">
-                  {form.getValues("nombre_empresa")}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Servidor</span>
-                <span className="font-medium font-mono">{resultado.host}</span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Base de datos</span>
-                <span className="font-medium font-mono break-all">
-                  {resultado.nombre_base}
-                </span>
-              </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-heading font-bold">
+                ¡Tu cuenta fue creada con éxito! 🎉
+              </h3>
+              <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                Bienvenido, <span className="font-medium text-foreground">{form.getValues("nombre_empresa")}</span>.
+                Tu cuenta ya está activa y lista para que accedas a facturar.
+              </p>
             </div>
-            <Button className="w-full" onClick={onClose}>
-              Cerrar
+            <Button
+              className="w-full h-11"
+              variant="hero"
+              onClick={() => {
+                // Redirige al login del POS en producción
+                window.location.href = "https://pos-prod.apps.icarosoft.com/login";
+              }}
+            >
+              Aceptar
             </Button>
           </motion.div>
         ) : (
@@ -444,8 +532,9 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                 <button
                   type="button"
                   onClick={() => {
-                    // Permitir ir al paso 2 solo si el paso 1 es válido
-                    form.trigger(["rif", "nombre_empresa", "telefono"]).then((ok) => ok && setPaso(2));
+                    // Misma validación que "Continuar": verifica el RIF antes
+                    // de dejar pasar al paso 2 (evita saltarse la comprobación).
+                    if (paso === 1) irAPaso2();
                   }}
                   className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                     paso === 2
@@ -586,9 +675,12 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                             ) : (
                               <AlertTriangle className="h-3 w-3 text-amber-500 shrink-0" />
                             )}
+                            {/* NO se expone el host ni la cantidad de bases: es
+                                información sensible de infraestructura. Solo se
+                                indica si hay capacidad disponible. */}
                             Servidor:{" "}
                             {verificacion.conexion_disponible
-                              ? `${verificacion.conexion_disponible.host} (${verificacion.conexion_disponible.bases_activas}/${verificacion.conexion_disponible.max_bases_datos} bases)`
+                              ? "disponible"
                               : "sin espacio disponible"}
                           </li>
                         </ul>
@@ -696,19 +788,20 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                                 {/* Número local: solo dígitos, se concatena con el código.
                                     IMPORTANTE: se quita SOLO el prefijo codigoPais (no un regex
                                     greedy \d+, que se comía también los dígitos tecleados y por
-                                    eso el campo parecía no aceptar escritura). */}
+                                    eso el campo parecía no aceptar escritura).
+                                    El valor se guarda SIN el '+' (ej. 584121234567). */}
                                 <Input
                                   type="tel"
                                   inputMode="numeric"
                                   placeholder="412 1234567"
                                   autoComplete="tel-national"
                                   className="flex-1 min-w-0 h-11 text-base font-semibold tracking-wide"
-                                  value={(field.value || "").startsWith(codigoPais)
-                                    ? (field.value || "").slice(codigoPais.length)
+                                  value={(field.value || "").startsWith(codigoPaisSinMas)
+                                    ? (field.value || "").slice(codigoPaisSinMas.length)
                                     : ""}
                                   onChange={(e) => {
                                     const digitos = e.target.value.replace(/\D/g, "").slice(0, 12);
-                                    field.onChange(`${codigoPais}${digitos}`);
+                                    field.onChange(`${codigoPaisSinMas}${digitos}`);
                                   }}
                                 />
                               </div>
@@ -905,6 +998,30 @@ const RegistroMultidbForm = ({ isOpen, onClose }: RegistroMultidbFormProps) => {
                       El correo será su usuario de acceso al sistema.
                     </p>
                   </div>
+
+                  {/* Panel de conflictos en el paso 2: alerta con el detalle
+                      exacto (ej. correo duplicado) sin salir de este paso. */}
+                  {verificacion &&
+                    !verificacion.puede_registrar &&
+                    verificacion.mensajes.length > 0 && (
+                      <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-2.5 text-sm space-y-1.5">
+                        <div className="flex items-center gap-2 font-medium text-destructive">
+                          <XCircle className="h-4 w-4 shrink-0" />
+                          Revisa los datos del administrador
+                        </div>
+                        <ul className="space-y-1 text-xs">
+                          {verificacion.mensajes.map((m) => (
+                            <li
+                              key={m}
+                              className="flex items-start gap-1.5 text-destructive font-medium"
+                            >
+                              <XCircle className="h-3 w-3 mt-0.5 shrink-0" />
+                              <span>{m}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                   <div className="flex gap-3">
                     <Button
