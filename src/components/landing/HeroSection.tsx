@@ -6,6 +6,8 @@ import RegistroMultidbForm from "./RegistroMultidbForm";
 import DemoAccessDialog from "./DemoAccessDialog";
 import heroDashboard from "@/assets/hero-principal.png";
 
+const SHOW_DEMO_BUTTON = false;
+
 const HeroSection = () => {
   const [isMultidbOpen, setIsMultidbOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
@@ -98,14 +100,16 @@ const HeroSection = () => {
                 Comenzar Prueba Gratis
                 <ArrowRight className="w-5 h-5" />
               </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                onClick={() => setIsDemoModalOpen(true)}
-              >
-                <Play className="w-5 h-5" />
-                Ver Demo
-              </Button>
+              {SHOW_DEMO_BUTTON && (
+                <Button
+                  variant="outline"
+                  size="xl"
+                  onClick={() => setIsDemoModalOpen(true)}
+                >
+                  <Play className="w-5 h-5" />
+                  Ver Demo
+                </Button>
+              )}
             </motion.div>
           </motion.div>
 

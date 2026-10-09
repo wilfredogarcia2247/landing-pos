@@ -5,6 +5,8 @@ import RegistroMultidbForm from "./RegistroMultidbForm";
 import DemoAccessDialog from "./DemoAccessDialog";
 import { ArrowRight, Phone, Mail } from "lucide-react";
 
+const SHOW_DEMO_BUTTON = false;
+
 const CTASection = () => {
   const [isMultidbOpen, setIsMultidbOpen] = useState(false);
   const [isDemoOpen, setIsDemoOpen] = useState(false);
@@ -49,17 +51,19 @@ const CTASection = () => {
               className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
               onClick={() => setIsMultidbOpen(true)}
             >
-              Prueba Gratis 14 Días
+              Regístrate
               <ArrowRight className="w-5 h-5" />
             </Button>
-            <Button
-              variant="outline"
-              size="xl"
-              className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
-              onClick={() => setIsDemoOpen(true)}
-            >
-              Agendar Demo
-            </Button>
+            {SHOW_DEMO_BUTTON && (
+              <Button
+                variant="outline"
+                size="xl"
+                className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
+                onClick={() => setIsDemoOpen(true)}
+              >
+                Agendar Demo
+              </Button>
+            )}
           </motion.div>
 
           <motion.div
