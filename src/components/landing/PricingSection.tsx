@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import RegistroMultidbForm from "./RegistroMultidbForm";
+
+const WHATSAPP_NUMBER = "58424643413";
 
 const plans = [
   {
@@ -52,6 +56,23 @@ const plans = [
 ];
 
 const PricingSection = () => {
+  const [isMultidbOpen, setIsMultidbOpen] = useState(false);
+
+  const handlePlanClick = (planName: string) => {
+    if (planName === "Empresarial") {
+      const mensaje = encodeURIComponent(
+        `Hola, me interesa el plan ${planName} de ICARO POS. Quisiera más información.`,
+      );
+      window.open(
+        `https://wa.me/${WHATSAPP_NUMBER}?text=${mensaje}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+      return;
+    }
+    setIsMultidbOpen(true);
+  };
+
   return (
     <section id="pricing" className="py-24 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -147,12 +168,7 @@ const PricingSection = () => {
                 variant={plan.popular ? "hero" : "outline"}
                 className="w-full mt-auto"
                 size="lg"
-                onClick={() => {
-                  const text = plan.price
-                    ? `Hola, estoy interesado en el plan "${plan.name}" de ICARO POS. ¿Podrían darme más información?`
-                    : `Hola, me interesa una contratación personalizada del plan Empresarial de ICARO POS. ¿Podrían contactarme?`;
-                  window.open(`https://wa.me/584246434313?text=${encodeURIComponent(text)}`, "_blank");
-                }}
+                onClick={() => handlePlanClick(plan.name)}
               >
                 {plan.cta}
               </Button>
@@ -161,6 +177,11 @@ const PricingSection = () => {
         </div>
 
       </div>
+
+      <RegistroMultidbForm
+        isOpen={isMultidbOpen}
+        onClose={() => setIsMultidbOpen(false)}
+      />
     </section>
   );
 };

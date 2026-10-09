@@ -1,8 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import RegistroMultidbForm from "./RegistroMultidbForm";
+import DemoAccessDialog from "./DemoAccessDialog";
 import { ArrowRight, Phone, Mail } from "lucide-react";
 
 const CTASection = () => {
+  const [isMultidbOpen, setIsMultidbOpen] = useState(false);
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
+
   return (
     <section className="py-24 bg-background relative overflow-hidden">
       {/* Background decoration */}
@@ -37,13 +43,21 @@ const CTASection = () => {
             transition={{ delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
           >
-            <Button variant="glass" size="xl" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+            <Button
+              variant="glass"
+              size="xl"
+              className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+              onClick={() => setIsMultidbOpen(true)}
+            >
               Prueba Gratis 14 Días
               <ArrowRight className="w-5 h-5" />
             </Button>
-            <Button variant="outline" size="xl" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10" onClick={() => {
-              window.open('https://wa.me/58424643413', '_blank', 'noopener,noreferrer');
-            }}>
+            <Button
+              variant="outline"
+              size="xl"
+              className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => setIsDemoOpen(true)}
+            >
               Agendar Demo
             </Button>
           </motion.div>
@@ -66,6 +80,12 @@ const CTASection = () => {
           </motion.div>
         </motion.div>
       </div>
+
+      <RegistroMultidbForm
+        isOpen={isMultidbOpen}
+        onClose={() => setIsMultidbOpen(false)}
+      />
+      <DemoAccessDialog open={isDemoOpen} onOpenChange={setIsDemoOpen} />
     </section>
   );
 };

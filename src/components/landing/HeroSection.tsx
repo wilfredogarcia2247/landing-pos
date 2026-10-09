@@ -2,10 +2,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, CheckCircle2 } from "lucide-react";
+import RegistroMultidbForm from "./RegistroMultidbForm";
 import DemoAccessDialog from "./DemoAccessDialog";
 import heroDashboard from "@/assets/hero-principal.png";
 
 const HeroSection = () => {
+  const [isMultidbOpen, setIsMultidbOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const benefits = [
     "Sin instalación",
@@ -88,16 +90,18 @@ const HeroSection = () => {
               transition={{ delay: 0.6 }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              <Button variant="hero" size="xl">
+              <Button
+                variant="hero"
+                size="xl"
+                onClick={() => setIsMultidbOpen(true)}
+              >
                 Comenzar Prueba Gratis
                 <ArrowRight className="w-5 h-5" />
               </Button>
               <Button
                 variant="outline"
                 size="xl"
-                onClick={() => {
-                  setIsDemoModalOpen(true);
-                }}
+                onClick={() => setIsDemoModalOpen(true)}
               >
                 <Play className="w-5 h-5" />
                 Ver Demo
@@ -173,6 +177,7 @@ const HeroSection = () => {
       </motion.div>
     </section>
     <DemoAccessDialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen} />
+    <RegistroMultidbForm isOpen={isMultidbOpen} onClose={() => setIsMultidbOpen(false)} />
     </>
   );
 };

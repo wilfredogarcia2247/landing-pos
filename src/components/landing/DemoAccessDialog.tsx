@@ -13,16 +13,16 @@ type DemoAccessDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-const DEMO_URL = "https://pos-demo.apps.icarosoft.com";
-const DEMO_CREDENTIALS = {
-  username: "demo01",
-  password: "demo01",
+const DEMO_LOGIN_URL = "https://pos-demo.apps.icarosoft.com/login";
+export const DEMO_CREDENTIALS = {
+  username: "posdemo@icaro.com",
+  password: "c123456",
 };
 
 const DemoAccessDialog = ({ open, onOpenChange }: DemoAccessDialogProps) => {
   const handleRedirect = () => {
     onOpenChange(false);
-    window.location.href = DEMO_URL;
+    window.location.href = DEMO_LOGIN_URL;
   };
 
   return (
@@ -50,8 +50,8 @@ const DemoAccessDialog = ({ open, onOpenChange }: DemoAccessDialogProps) => {
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cerrar
           </Button>
-          <Button variant="hero" onClick={handleRedirect}>
-            Ir al demo
+          <Button variant="hero" onClick={() => (window.location.href = DEMO_LOGIN_URL)}>
+            Iniciar sesión
           </Button>
         </DialogFooter>
       </DialogContent>

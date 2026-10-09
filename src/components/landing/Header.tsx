@@ -27,14 +27,16 @@ const Header = () => {
           {/* Logo */}
           <motion.a
             href="#"
-            className="flex items-center gap-3"
+            className="flex items-center gap-2"
             whileHover={{ scale: 1.02 }}
           >
-            <div className="w-12 h-12 flex items-center justify-center rounded-full border border-border/30 bg-background/30">
-              <img src="/logo-inicio.png" alt="Logo" className="w-8 h-8 object-contain" />
-            </div>
-            <span className="text-sm font-heading font-bold text-foreground">
-              ICARO POS
+            <img
+              src="/logo-inicio.png"
+              alt="Logo Icaro POS"
+              className="w-8 h-8 object-contain"
+            />
+            <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent text-lg font-heading font-bold">
+              Icaro POS
             </span>
           </motion.a>
 
