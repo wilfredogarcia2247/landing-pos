@@ -104,7 +104,7 @@ const Header = () => {
               ))}
               <div className="flex flex-col gap-2 pt-4">
                 <Button variant="ghost" className="w-full" onClick={() => {
-                  window.open('https://pos-demo.apps.icarosoft.com/login', '_blank', 'noopener,noreferrer');
+                  window.open('https://pos-prod.apps.icarosoft.com/login', '_blank', 'noopener,noreferrer');
                 }}>
                   Iniciar Sesión
                 </Button>
