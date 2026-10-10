@@ -1,3 +1,7 @@
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,10 +24,28 @@ export const DEMO_CREDENTIALS = {
 };
 
 const DemoAccessDialog = ({ open, onOpenChange }: DemoAccessDialogProps) => {
+  const [copied, setCopied] = useState<string | null>(null);
+
   const handleRedirect = () => {
     onOpenChange(false);
     window.location.href = DEMO_LOGIN_URL;
   };
+
+  const handleCopy = async (label: string, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(label);
+      toast.success(`${label} copiado`);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      toast.error("No se pudo copiar");
+    }
+  };
+
+  const credentials = [
+    { label: "Usuario", value: DEMO_CREDENTIALS.username },
+    { label: "Clave", value: DEMO_CREDENTIALS.password },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,14 +58,28 @@ const DemoAccessDialog = ({ open, onOpenChange }: DemoAccessDialogProps) => {
         </DialogHeader>
 
         <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Usuario</span>
-            <span className="font-semibold">{DEMO_CREDENTIALS.username}</span>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Clave</span>
-            <span className="font-semibold">{DEMO_CREDENTIALS.password}</span>
-          </div>
+          {credentials.map(({ label, value }) => (
+            <div key={label} className="flex items-center justify-between gap-4">
+              <span className="text-sm text-muted-foreground">{label}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{value}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  aria-label={`Copiar ${label}`}
+                  onClick={() => handleCopy(label, value)}
+                >
+                  {copied === label ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
 
         <DialogFooter className="gap-2">
