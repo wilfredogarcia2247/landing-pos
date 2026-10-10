@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import RegistroMultidbForm from "./RegistroMultidbForm";
+import DemoAccessDialog from "./DemoAccessDialog";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMultidbOpen, setIsMultidbOpen] = useState(false);
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   const navItems = [
     { label: "Características", href: "#features" },
@@ -92,15 +94,29 @@ const Header = () => {
               className="md:hidden mt-4 pb-4"
             >
             <nav className="flex flex-col gap-4">
-              {navItems.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
+              {navItems.map((item, index) => (
+                <div key={item.label} className="flex flex-col gap-4">
+                  <a
+                    href={item.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                  {index === 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setIsDemoOpen(true);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      Ver Demo
+                    </Button>
+                  )}
+                </div>
               ))}
               <div className="flex flex-col gap-2 pt-4">
                 <Button variant="ghost" className="w-full" onClick={() => {
@@ -126,6 +142,8 @@ const Header = () => {
         isOpen={isMultidbOpen}
         onClose={() => setIsMultidbOpen(false)}
       />
+
+      <DemoAccessDialog open={isDemoOpen} onOpenChange={setIsDemoOpen} />
     </motion.header>
   );
 };
